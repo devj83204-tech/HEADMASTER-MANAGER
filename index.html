@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>HEADMASTER CONTROL PANEL</title>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg-dark:#0f172a;--bg-dark-card:#1e293b;--text-dark:#f8fafc;--text-muted:#94a3b8;
+  --primary:#3b82f6;--primary-hover:#2563eb;--success:#10b981;--success-hover:#059669;
+  --danger:#ef4444;--danger-hover:#dc2626;--warning:#f59e0b;--border-dark:rgba(255,255,255,.1);
+  --shadow-card:0 10px 25px -5px rgba(0,0,0,.3),0 8px 10px -6px rgba(0,0,0,.3);
+  --radius-xl:24px;--radius-lg:16px;--radius-md:12px;
+  --accent-grad:linear-gradient(135deg,#3b82f6,#7c3aed 60%,#10b981);
+}
+.brandMark{font-size:44px;line-height:1;margin-bottom:6px;filter:drop-shadow(0 6px 14px rgba(59,130,246,.45));}
+.auth-container h2{background:var(--accent-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:24px;margin:4px 0;}
+.schoolCodeBadge{display:flex;align-items:center;gap:10px;background:rgba(124,58,237,.14);border:1px solid rgba(124,58,237,.35);
+  padding:10px 16px;border-radius:30px;font-size:13px;font-weight:700;margin-bottom:14px;flex-wrap:wrap;}
+.schoolCodeBadge b{color:#a78bfa;letter-spacing:.5px;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-variant-numeric:tabular-nums;}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:var(--text-dark);min-height:100vh;overflow-x:hidden;}
+.light-mode{background:#f1f5f9!important;color:#0f172a!important;}
+.light-mode .page{color:#0f172a!important;}
+.light-mode .auth-container,.light-mode .card,.light-mode .row-box,.light-mode .stats-widget,.light-mode .detail-box{
+  background:#fff!important;color:#0f172a!important;border:1px solid #e2e8f0!important;box-shadow:0 4px 12px rgba(0,0,0,.05)!important;}
+.light-mode input,.light-mode select{background:#f8fafc!important;color:#0f172a!important;border:1px solid #cbd5e1!important;}
+.page{display:none;padding:82px 20px 40px;width:100%;min-height:100vh;position:relative;max-width:900px;margin:0 auto;}
+.active{display:block;animation:fadeIn .3s cubic-bezier(.16,1,.3,1);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.center{text-align:center;}
+.auth-container{max-width:420px;margin:60px auto;padding:40px 28px;background:rgba(30,41,59,.75);border-radius:var(--radius-xl);
+  box-shadow:var(--shadow-card);backdrop-filter:blur(20px);border:1px solid var(--border-dark);}
+button{padding:13px 20px;margin:6px;border:none;border-radius:var(--radius-md);cursor:pointer;font-weight:600;font-size:14px;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:all .2s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 4px 10px rgba(0,0,0,.15);}
+button:hover{transform:translateY(-2px);}
+button:active{transform:translateY(0) scale(.95);}
+.primary{background:var(--accent-grad);color:#fff;}
+.primary:hover{filter:brightness(1.08);}
+.success-btn{background:var(--success);color:#fff;}
+.danger-btn{background:var(--danger);color:#fff;}
+.warn-btn{background:var(--warning);color:#0f172a;}
+.purple-btn{background:#7c3aed;color:#fff;}
+.backBtn{background:#475569;color:#fff;}
+input,select{padding:14px 18px;border-radius:var(--radius-md);border:1px solid var(--border-dark);margin:6px 0;
+  color:var(--text-dark);font-size:15px;width:100%;background:var(--bg-dark-card);}
+input:focus,select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(59,130,246,.25);}
+label.small{font-size:12px;color:var(--text-muted);display:block;margin:10px 0 -2px;font-weight:700;}
+.topBarFixed{position:fixed;top:0;left:0;right:0;z-index:999;display:flex;align-items:center;justify-content:space-between;
+  gap:8px;padding:14px 16px;}
+.pillBtn{padding:10px 14px;font-size:14px;border-radius:30px;background:rgba(255,255,255,.12);backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.2);color:inherit;cursor:pointer;white-space:nowrap;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;margin-top:22px;}
+.card{background:rgba(30,41,59,.6);padding:20px 16px;border-radius:var(--radius-lg);text-align:center;cursor:pointer;
+  display:flex;flex-direction:column;justify-content:space-between;align-items:center;gap:10px;min-height:120px;
+  border:1px solid var(--border-dark);backdrop-filter:blur(12px);transition:.2s;box-shadow:0 4px 12px rgba(0,0,0,.15);}
+.card:hover{transform:translateY(-4px);border-color:var(--primary);box-shadow:0 14px 24px -8px rgba(59,130,246,.35);}
+.card .roleTag{font-size:10.5px;padding:3px 8px;border-radius:8px;font-weight:700;}
+.tag-ct{background:rgba(59,130,246,.2);color:#60a5fa;}
+.tag-st{background:rgba(245,158,11,.2);color:#fbbf24;}
+.tag-none{background:rgba(148,163,184,.2);color:#94a3b8;}
+.stats-widget{background:rgba(16,185,129,.12);padding:16px;border-radius:var(--radius-lg);font-weight:700;
+  margin:14px 0;border-left:5px solid var(--success);text-align:center;}
+.detail-box{background:rgba(30,41,59,.55);border:1px solid var(--border-dark);border-radius:var(--radius-lg);
+  padding:18px;margin:14px 0;}
+.row-box{display:flex;justify-content:space-between;align-items:center;gap:10px;background:rgba(30,41,59,.55);
+  border:1px solid var(--border-dark);border-radius:var(--radius-md);padding:12px 16px;margin-bottom:10px;}
+.row-box .rInfo{display:flex;flex-direction:column;gap:2px;}
+.row-box small{color:var(--text-muted);}
+.chip{display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,.15);color:#60a5fa;padding:6px 10px;
+  border-radius:20px;font-size:12.5px;font-weight:700;margin:4px 4px 0 0;}
+.chip .x{cursor:pointer;color:var(--danger);font-weight:900;}
+.dashRow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:16px;}
+.dashBox{background:rgba(30,41,59,.6);border:1px solid var(--border-dark);border-radius:var(--radius-lg);
+  padding:16px;text-align:center;}
+.dashBox b{font-size:24px;display:block;}
+.dashBox span{font-size:12px;color:var(--text-muted);}
+.breadcrumb{font-size:13px;color:var(--text-muted);margin-bottom:8px;}
+#hmToast{position:fixed;bottom:18px;right:18px;background:rgba(15,23,42,.95);padding:12px 20px;border-radius:30px;
+  z-index:1500;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,.15);display:none;}
+</style>
+</head>
+<body>
+
+<div class="topBarFixed">
+  <button class="pillBtn" onclick="toggleMode()">🌓</button>
+  <button class="pillBtn" id="logoutBtn" style="display:none;" onclick="hmLogout()">🚪 Logout</button>
+</div>
+
+<!-- LOGIN -->
+<div id="loginPage" class="page active">
+  <div class="auth-container center">
+    <div class="brandMark">🏫</div>
+    <h2>Headmaster Panel</h2>
+    <p style="color:var(--text-muted);font-size:13px;">Full school control — teachers, classes &amp; subjects</p>
+    <label class="small">School Code</label>
+    <input type="text" id="hmSchoolCode" placeholder="e.g. SVMS2026 (create new or enter existing)" style="text-transform:uppercase;">
+    <label class="small">Headmaster Password</label>
+    <input type="password" id="hmPass" placeholder="Password">
+    <button class="primary" style="width:100%;margin-top:10px;" onclick="hmAuth()">🔐 Enter Panel</button>
+    <p id="hmAuthStatus" style="font-size:12px;color:var(--text-muted);margin-top:10px;"></p>
+    <p style="font-size:11.5px;color:var(--text-muted);margin-top:14px;line-height:1.5;">🆕 New school? Just type a School Code you'll remember and a password — it will be created automatically. Share the same School Code with your teachers so their app connects here.</p>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="homePage" class="page">
+  <div class="schoolCodeBadge">🏫 School Code: <b id="hmSchoolCodeDisplay">—</b> <button class="pillBtn" style="padding:6px 10px;font-size:12px;" onclick="copySchoolCode()">📋 Copy</button></div>
+  <h2>👋 Welcome, <span id="hmWelcomeName">Headmaster</span></h2>
+  <p style="color:var(--text-muted);font-size:13px;margin-top:-8px;">Share your School Code above with teachers — they'll use it to sign up or log in on the Student Record App, and instantly appear here for you to assign.</p>
+  <div class="dashRow">
+    <div class="dashBox"><b id="statTeachers">0</b><span>Teachers</span></div>
+    <div class="dashBox"><b id="statClasses">0</b><span>Classes</span></div>
+    <div class="dashBox"><b id="statStudents">0</b><span>Students</span></div>
+    <div class="dashBox"><b id="statTodayPct">0%</b><span>Checked Today</span></div>
+  </div>
+  <div class="grid">
+    <div class="card" onclick="showPage('teachersPage');renderTeachers();">👨‍🏫<div>Manage Teachers</div></div>
+    <div class="card" onclick="showPage('classesPage');renderClasses();">🏫<div>Manage Classes</div></div>
+    <div class="card" onclick="exportTeacherListPDF()">📄<div>Export Teacher List</div></div>
+    <div class="card" onclick="exportTeacherListExcel()">📊<div>Export Excel</div></div>
+  </div>
+</div>
+
+<!-- TEACHERS LIST -->
+<div id="teachersPage" class="page">
+  <button class="backBtn" onclick="showPage('homePage')">⬅ Back</button>
+  <h2 style="margin-top:16px;">👨‍🏫 All Teacher IDs</h2>
+  <input type="text" id="teacherSearchBox" placeholder="🔍 Search teacher ID..." oninput="renderTeachers()">
+  <button class="success-btn" style="width:100%;margin-top:10px;" onclick="openCreateTeacherForm()">➕ Create New Teacher ID</button>
+  <p style="font-size:12px;color:var(--text-muted);margin:6px 2px;">💡 Teachers can also self-register from the Student Record App using your School Code — they'll appear below automatically, ready for you to assign.</p>
+  <div id="createTeacherBox" class="detail-box" style="display:none;">
+    <label class="small">Teacher ID (login username)</label>
+    <input type="text" id="newTeacherId" placeholder="e.g. rahul.sir">
+    <label class="small">Display Name</label>
+    <input type="text" id="newTeacherName" placeholder="e.g. Rahul Sharma">
+    <label class="small">Password</label>
+    <input type="text" id="newTeacherPass" placeholder="Set a login password">
+    <p style="font-size:11.5px;color:var(--text-muted);">This teacher will log in to the Student Record App with this ID + password + your School Code <b id="createTeacherCodeHint"></b>.</p>
+    <button class="success-btn" style="width:100%;margin-top:8px;" onclick="createTeacher()">✅ Create ID</button>
+  </div>
+  <div class="grid" id="teachersGrid"></div>
+</div>
+
+<!-- TEACHER DETAIL -->
+<div id="teacherDetailPage" class="page">
+  <button class="backBtn" onclick="showPage('teachersPage');renderTeachers();">⬅ Back</button>
+  <h2 style="margin-top:16px;">🧑‍🏫 <span id="tdName"></span></h2>
+  <div class="detail-box">
+    <b>🏷️ Class Teacher Of (full class access — all subjects)</b>
+    <div id="tdClassTeacherChips" style="margin-top:8px;"></div>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+      <select id="tdAddClassTeacherSelect" style="flex:1;min-width:160px;"></select>
+      <button class="primary" onclick="assignClassTeacher()">➕ Assign as Class Teacher</button>
+    </div>
+  </div>
+  <div class="detail-box">
+    <b>📘 Subject Teacher Of (single-subject access)</b>
+    <div id="tdSubjectTeacherChips" style="margin-top:8px;"></div>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+      <select id="tdSubjClassSelect" style="flex:1;min-width:130px;" onchange="populateSubjectDropdownForAssign()"></select>
+      <select id="tdSubjSubjectSelect" style="flex:1;min-width:130px;"></select>
+      <button class="primary" onclick="assignSubjectTeacher()">➕ Assign as Subject Teacher</button>
+    </div>
+  </div>
+  <div class="detail-box">
+    <button class="purple-btn" style="width:100%;" onclick="inspectTeacher()">🔍 Inspect This Teacher's Data</button>
+    <button class="warn-btn" style="width:100%;margin-top:8px;" onclick="resetTeacherPassword()">🔑 Reset Password</button>
+    <button class="danger-btn" style="width:100%;margin-top:8px;" onclick="deleteTeacher()">🗑️ Delete Teacher ID</button>
+  </div>
+</div>
+
+<!-- CLASSES -->
+<div id="classesPage" class="page">
+  <button class="backBtn" onclick="showPage('homePage')">⬅ Back</button>
+  <h2 style="margin-top:16px;">🏫 Classes</h2>
+  <div style="display:flex;gap:8px;">
+    <input type="text" id="newClassName" placeholder="e.g. Class 10-A">
+    <button class="success-btn" onclick="addClass()">➕ Add</button>
+  </div>
+  <div id="classesGrid" class="grid"></div>
+</div>
+
+<!-- SUBJECTS -->
+<div id="subjectsPage" class="page">
+  <button class="backBtn" onclick="showPage('classesPage');renderClasses();">⬅ Back</button>
+  <div class="breadcrumb" id="subjBreadcrumb"></div>
+  <h2 style="margin-top:4px;">📚 Subjects</h2>
+  <div style="display:flex;gap:8px;">
+    <input type="text" id="newSubjectName" placeholder="e.g. Mathematics">
+    <button class="success-btn" onclick="addSubject()">➕ Add</button>
+  </div>
+  <div id="subjectsGrid" class="grid"></div>
+</div>
+
+<!-- SUB-SUBJECTS -->
+<div id="subSubjectsPage" class="page">
+  <button class="backBtn" onclick="showPage('subjectsPage');renderSubjects();">⬅ Back</button>
+  <div class="breadcrumb" id="subSubjBreadcrumb"></div>
+  <h2 style="margin-top:4px;">📖 Chapters / Sub-Subjects</h2>
+  <div style="display:flex;gap:8px;">
+    <input type="text" id="newSubSubjectName" placeholder="e.g. Chapter 3 - Algebra">
+    <button class="success-btn" onclick="addSubSubject()">➕ Add</button>
+  </div>
+  <div id="subSubjectsGrid" class="grid"></div>
+</div>
+
+<!-- STUDENTS -->
+<div id="studentsPage" class="page">
+  <button class="backBtn" onclick="showPage('subSubjectsPage');renderSubSubjects();">⬅ Back</button>
+  <div class="breadcrumb" id="studBreadcrumb"></div>
+  <div class="stats-widget">📈 Checked Today: <span id="studStatsChecked">0</span> / <span id="studStatsTotal">0</span></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <input type="text" id="newStudentName" placeholder="Student Name">
+    <input type="text" id="newStudentPhone" placeholder="Parent WhatsApp Number (with country code)">
+    <button class="success-btn" style="width:100%;" onclick="addStudent()">➕ Add Student</button>
+  </div>
+  <div id="studentsList" style="margin-top:16px;"></div>
+</div>
+
+<div id="hmToast"></div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAB77vRMD9FcIVsHXPU3c8lAsBR0HRLmcY",
+  authDomain: "student-record-app-45ed3.firebaseapp.com",
+  databaseURL: "https://student-record-app-45ed3-default-rtdb.firebaseio.com",
+  projectId: "student-record-app-45ed3",
+  storageBucket: "student-record-app-45ed3.appspot.com",
+  messagingSenderId: "581800549444",
+  appId: "1:581800549444:web:f86cec08754bbb1d58bec5",
+  measurementId: "G-9QJPS5TDWF"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const FieldValue = firebase.firestore.FieldValue;
+
+// ---------------------------------------------------------------
+// SHARED SCHOOL DOCUMENT — this is the single source of truth that
+// BOTH the Headmaster Panel and the Student Record App read/write.
+// Collection: "schools", Doc ID = the School Code itself.
+// Shape: { headmasterPassword, teachers:{...}, classes:{...} }
+// The Student Record App connects to the exact same doc using the
+// School Code the headmaster shares with each teacher.
+// ---------------------------------------------------------------
+let SCHOOL_DOC = null;
+let schoolCode = "";
+let hmData = { headmasterPassword: "", teachers: {}, classes: {} };
+let hmUnsub = null;
+let currentClass = "", currentSubject = "", currentSubSubject = "";
+let currentTeacherId = "";
+// Inspect scope: null = headmaster full access. Otherwise:
+// { mode:'class', classes:[...] } or { mode:'subject', pairs:[{cls,subj}] }
+let inspectScope = null;
+
+function toast(msg){ const t=document.getElementById("hmToast"); t.innerText=msg; t.style.display="block"; clearTimeout(window._hmT); window._hmT=setTimeout(()=>t.style.display="none",2200); }
+function showPage(id){ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active")); document.getElementById(id).classList.add("active"); window.scrollTo(0,0); }
+function toggleMode(){ document.body.classList.toggle("light-mode"); }
+function getTodayString(){ const d=new Date(); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
+function copySchoolCode(){
+  if(!schoolCode) return;
+  navigator.clipboard?.writeText(schoolCode).then(()=>toast("📋 School Code copied")).catch(()=>toast(schoolCode));
+}
+
+// ---------- AUTH ----------
+function hmAuth(){
+  let code = document.getElementById("hmSchoolCode").value.trim().toUpperCase();
+  let pass = document.getElementById("hmPass").value.trim();
+  if(!code || !pass){ toast("Enter School Code and password"); return; }
+  document.getElementById("hmAuthStatus").innerText = "🔄 Checking...";
+  db.collection("schools").doc(code).get().then(doc=>{
+    if(doc.exists){
+      if(doc.data().headmasterPassword === pass){
+        sessionStorage.setItem("hmSchoolCode", code);
+        loginSuccess(code);
+      } else {
+        document.getElementById("hmAuthStatus").innerText = "❌ Wrong password for this School Code";
+      }
+    } else {
+      if(confirm(`No school exists yet with code "${code}". Create it now with this password?`)){
+        db.collection("schools").doc(code).set({headmasterPassword: pass, teachers:{}, classes:{}}).then(()=>{
+          sessionStorage.setItem("hmSchoolCode", code);
+          loginSuccess(code);
+        });
+      }
+    }
+  });
+}
+function loginSuccess(code){
+  schoolCode = code;
+  SCHOOL_DOC = db.collection("schools").doc(code);
+  document.getElementById("hmWelcomeName").innerText = code;
+  document.getElementById("hmSchoolCodeDisplay").innerText = code;
+  document.getElementById("createTeacherCodeHint").innerText = `(${code})`;
+  document.getElementById("logoutBtn").style.display = "inline-flex";
+  attachListener();
+  showPage("homePage");
+}
+function hmLogout(){ sessionStorage.removeItem("hmSchoolCode"); if(hmUnsub) hmUnsub(); location.reload(); }
+
+function attachListener(){
+  if(hmUnsub) hmUnsub();
+  hmUnsub = SCHOOL_DOC.onSnapshot(doc=>{
+    if(doc.exists){
+      hmData = doc.data();
+      hmData.teachers = hmData.teachers || {};
+      hmData.classes = hmData.classes || {};
+    } else {
+      SCHOOL_DOC.set({teachers:{}, classes:{}}, {merge:true});
+    }
+    refreshCurrentView();
+  });
+}
+// Targeted field-path write — only touches the exact key given, so it
+// never clobbers other teachers' concurrent edits elsewhere in the doc.
+async function setField(path, value){
+  try{ await SCHOOL_DOC.update({[path]: value}); }
+  catch(e){ await SCHOOL_DOC.set({}, {merge:true}); await SCHOOL_DOC.update({[path]: value}); }
+}
+async function deleteField(path){
+  await SCHOOL_DOC.update({[path]: FieldValue.delete()});
+}
+
+function refreshCurrentView(){
+  updateDashboardStats();
+  if(document.getElementById("teachersPage").classList.contains("active")) renderTeachers();
+  if(document.getElementById("teacherDetailPage").classList.contains("active")) renderTeacherDetail();
+  if(document.getElementById("classesPage").classList.contains("active")) renderClasses();
+  if(document.getElementById("subjectsPage").classList.contains("active")) renderSubjects();
+  if(document.getElementById("subSubjectsPage").classList.contains("active")) renderSubSubjects();
+  if(document.getElementById("studentsPage").classList.contains("active")) renderStudents();
+}
+
+// ---------- DASHBOARD ----------
+function updateDashboardStats(){
+  let tCount = Object.keys(hmData.teachers).length;
+  let cCount = Object.keys(hmData.classes).length;
+  let sCount = 0, checkedToday = 0, today = getTodayString();
+  Object.values(hmData.classes).forEach(subjObj=>{
+    Object.values(subjObj).forEach(subSubjObj=>{
+      Object.values(subSubjObj).forEach(chapter=>{
+        (chapter.students||[]).forEach(st=>{
+          sCount++;
+          if(st.dates && st.dates.includes(today)) checkedToday++;
+        });
+      });
+    });
+  });
+  document.getElementById("statTeachers").innerText = tCount;
+  document.getElementById("statClasses").innerText = cCount;
+  document.getElementById("statStudents").innerText = sCount;
+  document.getElementById("statTodayPct").innerText = sCount ? Math.round((checkedToday/sCount)*100)+"%" : "0%";
+}
+
+// ---------- TEACHERS ----------
+function openCreateTeacherForm(){
+  let box = document.getElementById("createTeacherBox");
+  box.style.display = box.style.display === "block" ? "none" : "block";
+}
+function createTeacher(){
+  let id = document.getElementById("newTeacherId").value.trim().toLowerCase();
+  let name = document.getElementById("newTeacherName").value.trim();
+  let pass = document.getElementById("newTeacherPass").value.trim();
+  if(!id || !name || !pass){ toast("Fill all fields"); return; }
+  if(hmData.teachers[id]){ toast("This Teacher ID already exists"); return; }
+  setField(`teachers.${id}`, { name, password: pass, classTeacherOf: [], subjectTeacherOf: [] }).then(()=>{
+    toast("✅ Teacher ID created");
+    document.getElementById("newTeacherId").value="";
+    document.getElementById("newTeacherName").value="";
+    document.getElementById("newTeacherPass").value="";
+    document.getElementById("createTeacherBox").style.display="none";
+  });
+}
+function renderTeachers(){
+  let grid = document.getElementById("teachersGrid");
+  let q = (document.getElementById("teacherSearchBox").value||"").toLowerCase();
+  grid.innerHTML = "";
+  Object.keys(hmData.teachers).sort().forEach(id=>{
+    let t = hmData.teachers[id];
+    if(q && !id.includes(q) && !(t.name||"").toLowerCase().includes(q)) return;
+    let ctCount = (t.classTeacherOf||[]).length;
+    let stCount = (t.subjectTeacherOf||[]).length;
+    let tagHtml = "";
+    if(ctCount) tagHtml += `<span class="roleTag tag-ct">Class Teacher ×${ctCount}</span> `;
+    if(stCount) tagHtml += `<span class="roleTag tag-st">Subject Teacher ×${stCount}</span>`;
+    if(!ctCount && !stCount) tagHtml = `<span class="roleTag tag-none">No Role Yet</span>`;
+    let div = document.createElement("div");
+    div.className = "card";
+    div.onclick = ()=>openTeacherDetail(id);
+    div.innerHTML = `<div style="font-size:28px;">🧑‍🏫</div><div><b>${t.name}</b><br><small style="opacity:.7;">@${id}</small></div><div>${tagHtml}</div>`;
+    grid.appendChild(div);
+  });
+  if(!grid.innerHTML) grid.innerHTML = `<p style="color:var(--text-muted);">No teachers found.</p>`;
+}
+
+function openTeacherDetail(id){
+  currentTeacherId = id;
+  showPage("teacherDetailPage");
+  renderTeacherDetail();
+}
+function renderTeacherDetail(){
+  let t = hmData.teachers[currentTeacherId];
+  if(!t){ showPage("teachersPage"); renderTeachers(); return; }
+  document.getElementById("tdName").innerText = `${t.name} (@${currentTeacherId})`;
+
+  let ctChips = document.getElementById("tdClassTeacherChips");
+  ctChips.innerHTML = "";
+  (t.classTeacherOf||[]).forEach(cls=>{
+    let c = document.createElement("span"); c.className="chip";
+    c.innerHTML = `🏫 ${cls} <span class="x" onclick="removeClassTeacher('${cls.replace(/'/g,"\\'")}')">✕</span>`;
+    ctChips.appendChild(c);
+  });
+  if(!(t.classTeacherOf||[]).length) ctChips.innerHTML = `<small style="color:var(--text-muted);">Not a class teacher of any class.</small>`;
+
+  let stChips = document.getElementById("tdSubjectTeacherChips");
+  stChips.innerHTML = "";
+  (t.subjectTeacherOf||[]).forEach((p,idx)=>{
+    let c = document.createElement("span"); c.className="chip";
+    c.innerHTML = `📘 ${p.cls} → ${p.subj} <span class="x" onclick="removeSubjectTeacher(${idx})">✕</span>`;
+    stChips.appendChild(c);
+  });
+  if(!(t.subjectTeacherOf||[]).length) stChips.innerHTML = `<small style="color:var(--text-muted);">Not a subject teacher anywhere.</small>`;
+
+  let classSel = document.getElementById("tdAddClassTeacherSelect");
+  classSel.innerHTML = "";
+  Object.keys(hmData.classes).sort().forEach(cls=>{
+    let opt = document.createElement("option"); opt.value = cls; opt.innerText = cls; classSel.appendChild(opt);
+  });
+
+  let subjClassSel = document.getElementById("tdSubjClassSelect");
+  subjClassSel.innerHTML = "";
+  Object.keys(hmData.classes).sort().forEach(cls=>{
+    let opt = document.createElement("option"); opt.value = cls; opt.innerText = cls; subjClassSel.appendChild(opt);
+  });
+  populateSubjectDropdownForAssign();
+}
+function populateSubjectDropdownForAssign(){
+  let cls = document.getElementById("tdSubjClassSelect").value;
+  let subjSel = document.getElementById("tdSubjSubjectSelect");
+  subjSel.innerHTML = "";
+  Object.keys(hmData.classes[cls] || {}).sort().forEach(subj=>{
+    let opt = document.createElement("option"); opt.value = subj; opt.innerText = subj; subjSel.appendChild(opt);
+  });
+}
+function assignClassTeacher(){
+  let cls = document.getElementById("tdAddClassTeacherSelect").value;
+  if(!cls){ toast("Add a class first"); return; }
+  let t = hmData.teachers[currentTeacherId];
+  let list = (t.classTeacherOf || []).slice();
+  if(list.includes(cls)){ toast("Already assigned"); return; }
+  list.push(cls);
+  setField(`teachers.${currentTeacherId}.classTeacherOf`, list).then(()=>toast(`✅ Now Class Teacher of ${cls}`));
+}
+function removeClassTeacher(cls){
+  let t = hmData.teachers[currentTeacherId];
+  let list = (t.classTeacherOf||[]).filter(c=>c!==cls);
+  setField(`teachers.${currentTeacherId}.classTeacherOf`, list);
+}
+function assignSubjectTeacher(){
+  let cls = document.getElementById("tdSubjClassSelect").value;
+  let subj = document.getElementById("tdSubjSubjectSelect").value;
+  if(!cls || !subj){ toast("Add a class & subject first"); return; }
+  let t = hmData.teachers[currentTeacherId];
+  let list = (t.subjectTeacherOf || []).slice();
+  if(list.some(p=>p.cls===cls && p.subj===subj)){ toast("Already assigned"); return; }
+  list.push({cls, subj});
+  setField(`teachers.${currentTeacherId}.subjectTeacherOf`, list).then(()=>toast(`✅ Now Subject Teacher of ${subj} (${cls})`));
+}
+function removeSubjectTeacher(idx){
+  let t = hmData.teachers[currentTeacherId];
+  let list = (t.subjectTeacherOf||[]).slice();
+  list.splice(idx,1);
+  setField(`teachers.${currentTeacherId}.subjectTeacherOf`, list);
+}
+function resetTeacherPassword(){
+  let np = prompt("Enter new password for this teacher:");
+  if(!np) return;
+  setField(`teachers.${currentTeacherId}.password`, np).then(()=>toast("🔑 Password updated"));
+}
+function deleteTeacher(){
+  if(!confirm("Delete this teacher ID permanently? Class/subject data is not deleted.")) return;
+  deleteField(`teachers.${currentTeacherId}`).then(()=>{ toast("🗑️ Teacher deleted"); showPage("teachersPage"); renderTeachers(); });
+}
+
+// Inspect: open the class browser scoped to exactly what this teacher can see
+function inspectTeacher(){
+  let t = hmData.teachers[currentTeacherId];
+  let hasClass = (t.classTeacherOf||[]).length > 0;
+  let hasSubj = (t.subjectTeacherOf||[]).length > 0;
+  if(!hasClass && !hasSubj){ toast("This teacher has no assigned class/subject yet"); return; }
+  inspectScope = { classTeacherOf: t.classTeacherOf||[], subjectTeacherOf: t.subjectTeacherOf||[] };
+  showPage("classesPage");
+  renderClasses();
+  toast(`🔍 Viewing as ${t.name}`);
+}
+function clearInspect(){ inspectScope = null; }
+
+// ---------- CLASSES ----------
+function addClass(){
+  let name = document.getElementById("newClassName").value.trim();
+  if(!name){ toast("Enter a class name"); return; }
+  if(hmData.classes[name]){ toast("Class already exists"); return; }
+  setField(`classes.${name}`, {}).then(()=>{ document.getElementById("newClassName").value=""; toast("✅ Class added"); });
+}
+function deleteClass(cls, ev){
+  ev.stopPropagation();
+  if(!confirm(`Delete class "${cls}" and all its subjects/data?`)) return;
+  deleteField(`classes.${cls}`);
+}
+function renderClasses(){
+  let grid = document.getElementById("classesGrid");
+  grid.innerHTML = "";
+  let allowedClasses = null;
+  if(inspectScope){
+    allowedClasses = new Set([...inspectScope.classTeacherOf, ...inspectScope.subjectTeacherOf.map(p=>p.cls)]);
+  }
+  Object.keys(hmData.classes).sort().forEach(cls=>{
+    if(allowedClasses && !allowedClasses.has(cls)) return;
+    let div = document.createElement("div");
+    div.className = "card";
+    div.onclick = ()=>{ currentClass = cls; showPage("subjectsPage"); renderSubjects(); };
+    let delBtn = inspectScope ? "" : `<button class="danger-btn" style="padding:6px 10px;font-size:11px;" onclick="deleteClass('${cls.replace(/'/g,"\\'")}',event)">🗑️</button>`;
+    div.innerHTML = `<div style="font-size:28px;">🏫</div><b>${cls}</b>${delBtn}`;
+    grid.appendChild(div);
+  });
+  if(inspectScope){
+    let backBtn = document.createElement("div");
+    // add a small exit-inspect notice
+    let notice = document.createElement("p");
+    notice.style.cssText = "color:var(--text-muted);font-size:12px;text-align:center;width:100%;";
+    notice.innerHTML = `🔍 Inspect mode — <a href="#" onclick="clearInspect();renderClasses();return false;" style="color:var(--primary);">exit inspect</a>`;
+    grid.parentElement.insertBefore(notice, grid);
+  }
+}
+
+// ---------- SUBJECTS ----------
+function addSubject(){
+  let name = document.getElementById("newSubjectName").value.trim();
+  if(!name){ toast("Enter a subject name"); return; }
+  if((hmData.classes[currentClass]||{})[name]){ toast("Subject already exists"); return; }
+  setField(`classes.${currentClass}.${name}`, {}).then(()=>{ document.getElementById("newSubjectName").value=""; toast("✅ Subject added"); });
+}
+function deleteSubject(subj, ev){
+  ev.stopPropagation();
+  if(!confirm(`Delete subject "${subj}"?`)) return;
+  deleteField(`classes.${currentClass}.${subj}`);
+}
+function renderSubjects(){
+  document.getElementById("subjBreadcrumb").innerText = `🏫 ${currentClass}`;
+  let grid = document.getElementById("subjectsGrid");
+  grid.innerHTML = "";
+  let allowedSubjects = null;
+  if(inspectScope && !inspectScope.classTeacherOf.includes(currentClass)){
+    allowedSubjects = new Set(inspectScope.subjectTeacherOf.filter(p=>p.cls===currentClass).map(p=>p.subj));
+  }
+  Object.keys((hmData.classes[currentClass]||{})).sort().forEach(subj=>{
+    if(allowedSubjects && !allowedSubjects.has(subj)) return;
+    let div = document.createElement("div");
+    div.className = "card";
+    div.onclick = ()=>{ currentSubject = subj; showPage("subSubjectsPage"); renderSubSubjects(); };
+    let delBtn = inspectScope ? "" : `<button class="danger-btn" style="padding:6px 10px;font-size:11px;" onclick="deleteSubject('${subj.replace(/'/g,"\\'")}',event)">🗑️</button>`;
+    div.innerHTML = `<div style="font-size:26px;">📚</div><b>${subj}</b>${delBtn}`;
+    grid.appendChild(div);
+  });
+  if(!grid.innerHTML) grid.innerHTML = `<p style="color:var(--text-muted);">No subjects yet.</p>`;
+}
+
+// ---------- SUB-SUBJECTS ----------
+function addSubSubject(){
+  let name = document.getElementById("newSubSubjectName").value.trim();
+  if(!name){ toast("Enter a name"); return; }
+  let subjObj = hmData.classes[currentClass][currentSubject] || {};
+  if(subjObj[name]){ toast("Already exists"); return; }
+  setField(`classes.${currentClass}.${currentSubject}.${name}`, { students: [] }).then(()=>{ document.getElementById("newSubSubjectName").value=""; toast("✅ Added"); });
+}
+function deleteSubSubject(name, ev){
+  ev.stopPropagation();
+  if(!confirm(`Delete "${name}"?`)) return;
+  deleteField(`classes.${currentClass}.${currentSubject}.${name}`);
+}
+function renderSubSubjects(){
+  document.getElementById("subSubjBreadcrumb").innerText = `🏫 ${currentClass} → 📚 ${currentSubject}`;
+  let grid = document.getElementById("subSubjectsGrid");
+  grid.innerHTML = "";
+  let today = getTodayString();
+  let subjObj = (hmData.classes[currentClass]||{})[currentSubject] || {};
+  Object.keys(subjObj).sort().forEach(name=>{
+    let chapter = subjObj[name];
+    let students = chapter.students || [];
+    let checkedToday = students.filter(s=>s.dates && s.dates.includes(today)).length;
+    let totalChecks = students.reduce((sum,s)=>sum + (s.dates?s.dates.length:0), 0);
+    let lastDate = "—";
+    students.forEach(s=>{ if(s.dates && s.dates.length){ let d=s.dates[s.dates.length-1]; if(lastDate==="—") lastDate=d; } });
+    let div = document.createElement("div");
+    div.className = "card";
+    div.onclick = ()=>{ currentSubSubject = name; showPage("studentsPage"); renderStudents(); };
+    let delBtn = inspectScope ? "" : `<button class="danger-btn" style="padding:6px 10px;font-size:11px;" onclick="deleteSubSubject('${name.replace(/'/g,"\\'")}',event)">🗑️</button>`;
+    div.innerHTML = `<div style="font-size:24px;">📖</div><b style="font-size:13px;">${name}</b>
+      <small style="color:var(--text-muted);">Today: ${checkedToday}/${students.length}</small>
+      <small style="color:var(--text-muted);">Total checks: ${totalChecks} · Last: ${lastDate}</small>
+      ${delBtn}`;
+    grid.appendChild(div);
+  });
+  if(!grid.innerHTML) grid.innerHTML = `<p style="color:var(--text-muted);">No chapters yet.</p>`;
+}
+
+// ---------- STUDENTS ----------
+function addStudent(){
+  let name = document.getElementById("newStudentName").value.trim();
+  let phone = document.getElementById("newStudentPhone").value.trim();
+  if(!name){ toast("Enter student name"); return; }
+  let chapter = hmData.classes[currentClass][currentSubject][currentSubSubject];
+  let students = (chapter.students || []).slice();
+  students.push({ name, phone, dates: [] });
+  setField(`classes.${currentClass}.${currentSubject}.${currentSubSubject}.students`, students).then(()=>{
+    document.getElementById("newStudentName").value="";
+    document.getElementById("newStudentPhone").value="";
+    toast("✅ Student added");
+  });
+}
+function toggleStudentToday(idx){
+  let chapter = hmData.classes[currentClass][currentSubject][currentSubSubject];
+  let students = (chapter.students || []).map(s=>({...s, dates:(s.dates||[]).slice()}));
+  let st = students[idx];
+  let today = getTodayString();
+  let pos = st.dates.indexOf(today);
+  if(pos === -1) st.dates.push(today); else st.dates.splice(pos,1);
+  setField(`classes.${currentClass}.${currentSubject}.${currentSubSubject}.students`, students);
+}
+function deleteStudent(idx){
+  if(!confirm("Remove this student?")) return;
+  let students = (hmData.classes[currentClass][currentSubject][currentSubSubject].students || []).slice();
+  students.splice(idx,1);
+  setField(`classes.${currentClass}.${currentSubject}.${currentSubSubject}.students`, students);
+}
+function renderStudents(){
+  document.getElementById("studBreadcrumb").innerText = `🏫 ${currentClass} → 📚 ${currentSubject} → 📖 ${currentSubSubject}`;
+  let chapter = (hmData.classes[currentClass]||{})[currentSubject]?.[currentSubSubject];
+  let students = (chapter && chapter.students) || [];
+  let today = getTodayString();
+  let checkedToday = students.filter(s=>s.dates && s.dates.includes(today)).length;
+  document.getElementById("studStatsChecked").innerText = checkedToday;
+  document.getElementById("studStatsTotal").innerText = students.length;
+
+  let list = document.getElementById("studentsList");
+  list.innerHTML = "";
+  students.forEach((s, idx)=>{
+    let dates = s.dates || [];
+    let lastDate = dates.length ? dates[dates.length-1] : "Never checked";
+    let isCheckedToday = dates.includes(today);
+    let row = document.createElement("div");
+    row.className = "row-box";
+    row.innerHTML = `
+      <div class="rInfo">
+        <b>${s.name}</b>
+        <small>📱 ${s.phone||"No number"}</small>
+        <small>✅ Checked ${dates.length}× · Last: ${lastDate}</small>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="${isCheckedToday?'success-btn':'warn-btn'}" style="padding:8px 12px;font-size:12px;" onclick="toggleStudentToday(${idx})">${isCheckedToday?'✔️ Today':'Mark Today'}</button>
+        <button class="danger-btn" style="padding:8px 10px;font-size:12px;" onclick="deleteStudent(${idx})">🗑️</button>
+      </div>`;
+    list.appendChild(row);
+  });
+  if(!list.innerHTML) list.innerHTML = `<p style="color:var(--text-muted);">No students yet.</p>`;
+}
+
+// ---------- EXPORTS ----------
+function exportTeacherListPDF(){
+  const { jsPDF } = window.jspdf;
+  let doc = new jsPDF();
+  doc.text("Teacher List", 14, 15);
+  let rows = Object.keys(hmData.teachers).map(id=>{
+    let t = hmData.teachers[id];
+    return [id, t.name, (t.classTeacherOf||[]).join(", ")||"-", (t.subjectTeacherOf||[]).map(p=>`${p.subj}@${p.cls}`).join(", ")||"-"];
+  });
+  doc.autoTable({ head:[["ID","Name","Class Teacher Of","Subject Teacher Of"]], body: rows, startY:22 });
+  doc.save("teacher_list.pdf");
+}
+function exportTeacherListExcel(){
+  let rows = Object.keys(hmData.teachers).map(id=>{
+    let t = hmData.teachers[id];
+    return { ID:id, Name:t.name, ClassTeacherOf:(t.classTeacherOf||[]).join(", "), SubjectTeacherOf:(t.subjectTeacherOf||[]).map(p=>`${p.subj}@${p.cls}`).join(", ") };
+  });
+  let ws = XLSX.utils.json_to_sheet(rows);
+  let wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Teachers");
+  XLSX.writeFile(wb, "teacher_list.xlsx");
+}
+
+// ---------- AUTO LOGIN ----------
+window.onload = function(){
+  let saved = sessionStorage.getItem("hmSchoolCode");
+  if(saved){
+    loginSuccess(saved);
+  }
+};
+</script>
+</body>
+</html>
