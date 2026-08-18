@@ -9,6 +9,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <style>
 :root{
   --bg-dark:#0f172a;--bg-dark-card:#1e293b;--text-dark:#f8fafc;--text-muted:#94a3b8;
@@ -23,6 +25,8 @@
 .schoolCodeBadge{display:flex;align-items:center;gap:10px;background:rgba(124,58,237,.14);border:1px solid rgba(124,58,237,.35);
   padding:10px 16px;border-radius:30px;font-size:13px;font-weight:700;margin-bottom:14px;flex-wrap:wrap;}
 .schoolCodeBadge b{color:#a78bfa;letter-spacing:.5px;}
+.graphCard{background:linear-gradient(160deg,rgba(59,130,246,0.07),rgba(124,58,237,0.05));border:1px solid var(--border-dark);
+  border-radius:20px;padding:20px 16px 10px;margin-top:10px;box-shadow:var(--shadow-card);}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-variant-numeric:tabular-nums;}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:var(--text-dark);min-height:100vh;overflow-x:hidden;}
@@ -48,6 +52,7 @@ button:active{transform:translateY(0) scale(.95);}
 .danger-btn{background:var(--danger);color:#fff;}
 .warn-btn{background:var(--warning);color:#0f172a;}
 .purple-btn{background:#7c3aed;color:#fff;}
+.pdf-btn{background:linear-gradient(135deg,#f43f5e,#ec4899);color:#fff;}
 .backBtn{background:#475569;color:#fff;}
 input,select{padding:14px 18px;border-radius:var(--radius-md);border:1px solid var(--border-dark);margin:6px 0;
   color:var(--text-dark);font-size:15px;width:100%;background:var(--bg-dark-card);}
@@ -146,6 +151,17 @@ label.small{font-size:12px;color:var(--text-muted);display:block;margin:10px 0 -
     <p style="font-size:11.5px;color:var(--text-muted);">This teacher will log in to the Student Record App with this ID + password + your School Code <b id="createTeacherCodeHint"></b>.</p>
     <button class="success-btn" style="width:100%;margin-top:8px;" onclick="createTeacher()">✅ Create ID</button>
   </div>
+
+  <div class="detail-box">
+    <b>📥 Bulk Create Teacher IDs (Excel)</b>
+    <p style="font-size:11.5px;color:var(--text-muted);margin:6px 0 10px;">Upload a sheet with a <b>Name</b> column and a <b>Password</b> column — every row is turned into a Teacher ID instantly.</p>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="purple-btn" style="flex:1;min-width:160px;" onclick="document.getElementById('bulkImportFile').click()">📥 Upload Excel Sheet</button>
+      <button class="pillBtn" style="flex:1;min-width:160px;" onclick="downloadBulkImportTemplate()">⬇️ Download Template</button>
+    </div>
+    <input type="file" id="bulkImportFile" accept=".xlsx,.xls,.csv" style="display:none;" onchange="handleBulkImportFile(event)">
+    <p id="bulkImportStatus" style="font-size:12px;color:var(--text-muted);margin-top:8px; white-space:pre-line;"></p>
+  </div>
   <div class="grid" id="teachersGrid"></div>
 </div>
 
@@ -186,6 +202,25 @@ label.small{font-size:12px;color:var(--text-muted);display:block;margin:10px 0 -
     <button class="success-btn" onclick="addClass()">➕ Add</button>
   </div>
   <div id="classesGrid" class="grid"></div>
+</div>
+
+<!-- CLASS MONTHLY GRAPH -->
+<div id="classGraphPage" class="page">
+  <button class="backBtn" onclick="showPage('classesPage');renderClasses();">⬅ Back</button>
+  <div class="breadcrumb" id="classGraphBreadcrumb"></div>
+  <h2 style="margin-top:4px;">📊 Monthly Attendance Record</h2>
+  <p style="font-size:12.5px;color:var(--text-muted);">Every check-in, across every subject &amp; chapter in this class, grouped by month — so you can see the whole class's trend at a glance.</p>
+
+  <div class="dashRow" id="graphStatRow">
+    <div class="dashBox"><b id="statThisMonthChecks">0</b><span id="statThisMonthLabel">This Month</span></div>
+    <div class="dashBox"><b id="statThisMonthUnique">0</b><span>Unique Students Checked</span></div>
+    <div class="dashBox"><b id="statThisMonthPct">0%</b><span>Of Class Participated</span></div>
+  </div>
+
+  <div id="classGraphEmptyNotice" style="display:none;color:var(--text-muted);text-align:center;padding:30px 0;">No attendance data recorded yet for this class.</div>
+  <div class="graphCard">
+    <canvas id="classMonthlyChart" height="260"></canvas>
+  </div>
 </div>
 
 <!-- SUBJECTS -->
@@ -333,6 +368,7 @@ function refreshCurrentView(){
   if(document.getElementById("teachersPage").classList.contains("active")) renderTeachers();
   if(document.getElementById("teacherDetailPage").classList.contains("active")) renderTeacherDetail();
   if(document.getElementById("classesPage").classList.contains("active")) renderClasses();
+  if(document.getElementById("classGraphPage").classList.contains("active") && currentGraphClass) renderClassGraph(currentGraphClass);
   if(document.getElementById("subjectsPage").classList.contains("active")) renderSubjects();
   if(document.getElementById("subSubjectsPage").classList.contains("active")) renderSubSubjects();
   if(document.getElementById("studentsPage").classList.contains("active")) renderStudents();
@@ -527,7 +563,8 @@ function renderClasses(){
     div.className = "card";
     div.onclick = ()=>{ currentClass = cls; showPage("subjectsPage"); renderSubjects(); };
     let delBtn = inspectScope ? "" : `<button class="danger-btn" style="padding:6px 10px;font-size:11px;" onclick="deleteClass('${cls.replace(/'/g,"\\'")}',event)">🗑️</button>`;
-    div.innerHTML = `<div style="font-size:28px;">🏫</div><b>${cls}</b>${delBtn}`;
+    let graphBtn = `<button class="pillBtn" style="padding:6px 10px;font-size:11px;" onclick="openClassGraph('${cls.replace(/'/g,"\\'")}',event)">📊</button>`;
+    div.innerHTML = `<div style="font-size:28px;">🏫</div><b>${cls}</b><div style="display:flex;gap:6px;">${graphBtn}${delBtn}</div>`;
     grid.appendChild(div);
   });
   if(inspectScope){
@@ -538,6 +575,154 @@ function renderClasses(){
     notice.innerHTML = `🔍 Inspect mode — <a href="#" onclick="clearInspect();renderClasses();return false;" style="color:var(--primary);">exit inspect</a>`;
     grid.parentElement.insertBefore(notice, grid);
   }
+}
+
+// ---------- CLASS MONTHLY GRAPH ----------
+let classChartInstance = null;
+let currentGraphClass = "";
+function openClassGraph(cls, ev){
+  if(ev) ev.stopPropagation();
+  currentGraphClass = cls;
+  showPage("classGraphPage");
+  renderClassGraph(cls);
+}
+function buildClassMonthlyStats(cls){
+  let classObj = hmData.classes[cls] || {};
+  let subjects = Object.keys(classObj);
+  let monthsSet = new Set();
+  let subjMonthCounts = {};
+  subjects.forEach(subj=>{
+    subjMonthCounts[subj] = {};
+    let chapters = classObj[subj] || {};
+    Object.keys(chapters).forEach(chap=>{
+      let students = (chapters[chap] && chapters[chap].students) || [];
+      students.forEach(st=>{
+        (st.dates||[]).forEach(dateStr=>{
+          let parts = dateStr.split('/');
+          if(parts.length !== 3) return;
+          let mk = `${parts[1]}/${parts[2]}`;
+          monthsSet.add(mk);
+          subjMonthCounts[subj][mk] = (subjMonthCounts[subj][mk]||0) + 1;
+        });
+      });
+    });
+  });
+  let months = Array.from(monthsSet).sort((a,b)=>{
+    let [ma,ya] = a.split('/').map(Number); let [mb,yb] = b.split('/').map(Number);
+    return (ya-yb) || (ma-mb);
+  });
+  return { subjects, months, subjMonthCounts };
+}
+// "Kitne log is month copy chalaye" — this month's total check-ins, unique
+// students who checked at least once, and what % of the class that is.
+function buildCurrentMonthSummary(cls){
+  const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  let now = new Date();
+  let curKey = `${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+  let classObj = hmData.classes[cls] || {};
+  let totalChecksThisMonth = 0;
+  let uniqueNames = new Set();
+  let allNames = new Set();
+  Object.keys(classObj).forEach(subj=>{
+    let chapters = classObj[subj] || {};
+    Object.keys(chapters).forEach(chap=>{
+      let students = (chapters[chap] && chapters[chap].students) || [];
+      students.forEach(st=>{
+        allNames.add(st.name);
+        let checksThisMonth = (st.dates||[]).filter(d=>{
+          let p = d.split('/'); return p.length===3 && `${p[1]}/${p[2]}` === curKey;
+        }).length;
+        if(checksThisMonth > 0){ totalChecksThisMonth += checksThisMonth; uniqueNames.add(st.name); }
+      });
+    });
+  });
+  let pct = allNames.size ? Math.round((uniqueNames.size / allNames.size) * 100) : 0;
+  return {
+    label: `${monthNames[now.getMonth()]} ${now.getFullYear()}`,
+    totalChecks: totalChecksThisMonth,
+    uniqueCount: uniqueNames.size,
+    pct
+  };
+}
+function renderClassGraph(cls){
+  document.getElementById("classGraphBreadcrumb").innerText = `🏫 ${cls}`;
+
+  let summary = buildCurrentMonthSummary(cls);
+  document.getElementById("statThisMonthLabel").innerText = `Copies Checked — ${summary.label}`;
+  document.getElementById("statThisMonthChecks").innerText = summary.totalChecks;
+  document.getElementById("statThisMonthUnique").innerText = summary.uniqueCount;
+  document.getElementById("statThisMonthPct").innerText = summary.pct + "%";
+
+  let { subjects, months, subjMonthCounts } = buildClassMonthlyStats(cls);
+  document.getElementById("classGraphEmptyNotice").style.display = months.length ? "none" : "block";
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  let labels = months.map(mk=>{ let [m,y] = mk.split('/'); return `${monthNames[parseInt(m,10)-1]} '${String(y).slice(2)}`; });
+  const palette = [
+    {b:'#3b82f6', h:'#60a5fa'}, {b:'#10b981', h:'#34d399'}, {b:'#f59e0b', h:'#fbbf24'},
+    {b:'#ef4444', h:'#f87171'}, {b:'#a78bfa', h:'#c4b5fd'}, {b:'#f472b6', h:'#f9a8d4'},
+    {b:'#22d3ee', h:'#67e8f9'}, {b:'#facc15', h:'#fde047'}, {b:'#fb923c', h:'#fdba74'}, {b:'#4ade80', h:'#86efac'}
+  ];
+  let datasets = subjects.map((subj,i)=>({
+    label: subj,
+    data: months.map(mk => subjMonthCounts[subj][mk] || 0),
+    backgroundColor: palette[i % palette.length].b,
+    hoverBackgroundColor: palette[i % palette.length].h,
+    borderRadius: 8,
+    borderSkipped: false,
+    maxBarThickness: 46,
+    categoryPercentage: 0.72,
+    barPercentage: 0.85
+  }));
+  if(classChartInstance) classChartInstance.destroy();
+  let ctx = document.getElementById("classMonthlyChart").getContext("2d");
+  classChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    plugins: (window.ChartDataLabels ? [ChartDataLabels] : []),
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      interaction: { mode: 'index', intersect: false },
+      animation: { duration: 650, easing: 'easeOutQuart' },
+      layout: { padding: { top: 6, right: 6 } },
+      plugins: {
+        legend: {
+          position: 'top', align: 'end',
+          labels: { color: '#e2e8f0', usePointStyle: true, pointStyle: 'circle', boxWidth: 8, font: { size: 12, family: "'Segoe UI', sans-serif" }, padding: 16 }
+        },
+        title: {
+          display: true, text: `Monthly Copy-Check Trend — ${cls}`,
+          color: '#f8fafc', font: { size: 16, weight: '700' }, padding: { bottom: 4 }
+        },
+        subtitle: {
+          display: true, text: 'Total check-ins per subject, grouped by month',
+          color: '#94a3b8', font: { size: 11.5, style: 'italic' }, padding: { bottom: 16 }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(15,23,42,0.95)', titleColor: '#f8fafc', bodyColor: '#cbd5e1',
+          borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, cornerRadius: 10, padding: 12,
+          usePointStyle: true, boxPadding: 4
+        },
+        datalabels: {
+          display: (ctx) => ctx.dataset.data[ctx.dataIndex] > 0 && subjects.length <= 4,
+          color: '#f8fafc', font: { size: 10, weight: '600' }, anchor: 'end', align: 'top', offset: 2
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#94a3b8', font: { size: 12 } },
+          grid: { display: false },
+          border: { color: 'rgba(255,255,255,.1)' }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { color: '#94a3b8', precision: 0, font: { size: 11 } },
+          grid: { color: 'rgba(255,255,255,.06)', drawTicks: false },
+          border: { display: false }
+        }
+      }
+    }
+  });
 }
 
 // ---------- SUBJECTS ----------
@@ -672,22 +857,98 @@ function renderStudents(){
   if(!list.innerHTML) list.innerHTML = `<p style="color:var(--text-muted);">No students yet.</p>`;
 }
 
+// ---------- BULK TEACHER IMPORT (Excel) ----------
+function downloadBulkImportTemplate(){
+  let rows = [
+    { Name: "Rahul Sharma", TeacherID: "", Password: "" },
+    { Name: "Priya Verma", TeacherID: "priya.verma", Password: "priya@123" }
+  ];
+  let ws = XLSX.utils.json_to_sheet(rows);
+  let wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Teachers");
+  XLSX.writeFile(wb, "teacher_bulk_import_template.xlsx");
+}
+function slugifyName(name, existingIds){
+  let base = (name || "teacher").toLowerCase().trim()
+    .replace(/[^a-z0-9\s]/g, "").trim().replace(/\s+/g, ".");
+  if(!base) base = "teacher";
+  let id = base, n = 1;
+  while(existingIds.has(id)){ id = `${base}${n}`; n++; }
+  existingIds.add(id);
+  return id;
+}
+// Finds the column in a row whose header text matches one of the given
+// patterns, ignoring case/spacing — so "Name", " name ", "Naam", "Teacher Name"
+// etc. all still get recognised instead of only exact "Name".
+function findColumnValue(row, patterns){
+  let keys = Object.keys(row);
+  for(let pat of patterns){
+    let k = keys.find(key => pat.test(key.trim()));
+    if(k !== undefined && String(row[k]).trim() !== "") return String(row[k]).trim();
+  }
+  return "";
+}
+function handleBulkImportFile(ev){
+  let file = ev.target.files[0];
+  if(!file) return;
+  document.getElementById("bulkImportStatus").innerText = "🔄 Reading sheet...";
+  let reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      let wb = XLSX.read(new Uint8Array(e.target.result), { type: "array" });
+      let sheet = wb.Sheets[wb.SheetNames[0]];
+      let rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+      if(!rows.length){ document.getElementById("bulkImportStatus").innerText = "❌ Sheet is empty."; return; }
+
+      let existingIds = new Set(Object.keys(hmData.teachers));
+      let bulkUpdate = {};
+      let created = [];
+      let skipped = 0;
+      rows.forEach(row=>{
+        let name = findColumnValue(row, [/^name$/i, /name/i]);
+        let pass = findColumnValue(row, [/^pass(word)?$/i, /pass/i]);
+        let id   = findColumnValue(row, [/^(teacher\s?id|user\s?name|id)$/i]);
+        if(!name || !pass){ skipped++; return; } // row must have both Name & Password recognised
+        id = id.toLowerCase().replace(/\s+/g,".");
+        if(!id || existingIds.has(id)) id = slugifyName(name, existingIds); else existingIds.add(id);
+        bulkUpdate[`teachers.${id}`] = { name, password: pass, classTeacherOf: [], subjectTeacherOf: [] };
+        created.push(`${name} (@${id})`);
+      });
+
+      if(!created.length){ document.getElementById("bulkImportStatus").innerText = "❌ No rows recognised — make sure your sheet has a Name column and a Password column with values in every row."; return; }
+
+      SCHOOL_DOC.update(bulkUpdate).then(()=>{
+        let msg = `✅ ${created.length} teacher ID(s) created:\n${created.join(", ")}`;
+        if(skipped) msg += `\n⚠️ ${skipped} row(s) skipped (missing Name or Password).`;
+        document.getElementById("bulkImportStatus").innerText = msg;
+        toast(`✅ ${created.length} teacher accounts created`);
+      }).catch(()=>{
+        document.getElementById("bulkImportStatus").innerText = "❌ Import failed — try again.";
+      });
+    } catch(err){
+      document.getElementById("bulkImportStatus").innerText = "❌ Couldn't read that file — use .xlsx, .xls or .csv.";
+    }
+    ev.target.value = "";
+  };
+  reader.readAsArrayBuffer(file);
+}
+
 // ---------- EXPORTS ----------
 function exportTeacherListPDF(){
   const { jsPDF } = window.jspdf;
   let doc = new jsPDF();
-  doc.text("Teacher List", 14, 15);
-  let rows = Object.keys(hmData.teachers).map(id=>{
+  doc.text(`Teacher Login Credentials — School Code: ${schoolCode}`, 14, 15);
+  let rows = Object.keys(hmData.teachers).sort().map(id=>{
     let t = hmData.teachers[id];
-    return [id, t.name, (t.classTeacherOf||[]).join(", ")||"-", (t.subjectTeacherOf||[]).map(p=>`${p.subj}@${p.cls}`).join(", ")||"-"];
+    return [id, t.password];
   });
-  doc.autoTable({ head:[["ID","Name","Class Teacher Of","Subject Teacher Of"]], body: rows, startY:22 });
+  doc.autoTable({ head:[["Username","Password"]], body: rows, startY:22 });
   doc.save("teacher_list.pdf");
 }
 function exportTeacherListExcel(){
-  let rows = Object.keys(hmData.teachers).map(id=>{
+  let rows = Object.keys(hmData.teachers).sort().map(id=>{
     let t = hmData.teachers[id];
-    return { ID:id, Name:t.name, ClassTeacherOf:(t.classTeacherOf||[]).join(", "), SubjectTeacherOf:(t.subjectTeacherOf||[]).map(p=>`${p.subj}@${p.cls}`).join(", ") };
+    return { Username: id, Password: t.password };
   });
   let ws = XLSX.utils.json_to_sheet(rows);
   let wb = XLSX.utils.book_new();
@@ -703,5 +964,5 @@ window.onload = function(){
   }
 };
 </script>
-</body>1
+</body>
 </html>
