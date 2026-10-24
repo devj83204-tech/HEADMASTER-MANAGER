@@ -1,707 +1,415 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>HEADMASTER CONTROL PANEL</title>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fff3d1">
+<title>Sorry Dosti App</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg-dark:#0f172a;--bg-dark-card:#1e293b;--text-dark:#f8fafc;--text-muted:#94a3b8;
-  --primary:#3b82f6;--primary-hover:#2563eb;--success:#10b981;--success-hover:#059669;
-  --danger:#ef4444;--danger-hover:#dc2626;--warning:#f59e0b;--border-dark:rgba(255,255,255,.1);
-  --shadow-card:0 10px 25px -5px rgba(0,0,0,.3),0 8px 10px -6px rgba(0,0,0,.3);
-  --radius-xl:24px;--radius-lg:16px;--radius-md:12px;
-  --accent-grad:linear-gradient(135deg,#3b82f6,#7c3aed 60%,#10b981);
-}
-.brandMark{font-size:44px;line-height:1;margin-bottom:6px;filter:drop-shadow(0 6px 14px rgba(59,130,246,.45));}
-.auth-container h2{background:var(--accent-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:24px;margin:4px 0;}
-.schoolCodeBadge{display:flex;align-items:center;gap:10px;background:rgba(124,58,237,.14);border:1px solid rgba(124,58,237,.35);
-  padding:10px 16px;border-radius:30px;font-size:13px;font-weight:700;margin-bottom:14px;flex-wrap:wrap;}
-.schoolCodeBadge b{color:#a78bfa;letter-spacing:.5px;}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-variant-numeric:tabular-nums;}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:var(--text-dark);min-height:100vh;overflow-x:hidden;}
-.light-mode{background:#f1f5f9!important;color:#0f172a!important;}
-.light-mode .page{color:#0f172a!important;}
-.light-mode .auth-container,.light-mode .card,.light-mode .row-box,.light-mode .stats-widget,.light-mode .detail-box{
-  background:#fff!important;color:#0f172a!important;border:1px solid #e2e8f0!important;box-shadow:0 4px 12px rgba(0,0,0,.05)!important;}
-.light-mode input,.light-mode select{background:#f8fafc!important;color:#0f172a!important;border:1px solid #cbd5e1!important;}
-.page{display:none;padding:82px 20px 40px;width:100%;min-height:100vh;position:relative;max-width:900px;margin:0 auto;}
-.active{display:block;animation:fadeIn .3s cubic-bezier(.16,1,.3,1);}
-@keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
-.center{text-align:center;}
-.auth-container{max-width:420px;margin:60px auto;padding:40px 28px;background:rgba(30,41,59,.75);border-radius:var(--radius-xl);
-  box-shadow:var(--shadow-card);backdrop-filter:blur(20px);border:1px solid var(--border-dark);}
-button{padding:13px 20px;margin:6px;border:none;border-radius:var(--radius-md);cursor:pointer;font-weight:600;font-size:14px;
-  display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:all .2s cubic-bezier(.4,0,.2,1);
-  box-shadow:0 4px 10px rgba(0,0,0,.15);}
-button:hover{transform:translateY(-2px);}
-button:active{transform:translateY(0) scale(.95);}
-.primary{background:var(--accent-grad);color:#fff;}
-.primary:hover{filter:brightness(1.08);}
-.success-btn{background:var(--success);color:#fff;}
-.danger-btn{background:var(--danger);color:#fff;}
-.warn-btn{background:var(--warning);color:#0f172a;}
-.purple-btn{background:#7c3aed;color:#fff;}
-.backBtn{background:#475569;color:#fff;}
-input,select{padding:14px 18px;border-radius:var(--radius-md);border:1px solid var(--border-dark);margin:6px 0;
-  color:var(--text-dark);font-size:15px;width:100%;background:var(--bg-dark-card);}
-input:focus,select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(59,130,246,.25);}
-label.small{font-size:12px;color:var(--text-muted);display:block;margin:10px 0 -2px;font-weight:700;}
-.topBarFixed{position:fixed;top:0;left:0;right:0;z-index:999;display:flex;align-items:center;justify-content:space-between;
-  gap:8px;padding:14px 16px;}
-.pillBtn{padding:10px 14px;font-size:14px;border-radius:30px;background:rgba(255,255,255,.12);backdrop-filter:blur(12px);
-  border:1px solid rgba(255,255,255,.2);color:inherit;cursor:pointer;white-space:nowrap;}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;margin-top:22px;}
-.card{background:rgba(30,41,59,.6);padding:20px 16px;border-radius:var(--radius-lg);text-align:center;cursor:pointer;
-  display:flex;flex-direction:column;justify-content:space-between;align-items:center;gap:10px;min-height:120px;
-  border:1px solid var(--border-dark);backdrop-filter:blur(12px);transition:.2s;box-shadow:0 4px 12px rgba(0,0,0,.15);}
-.card:hover{transform:translateY(-4px);border-color:var(--primary);box-shadow:0 14px 24px -8px rgba(59,130,246,.35);}
-.card .roleTag{font-size:10.5px;padding:3px 8px;border-radius:8px;font-weight:700;}
-.tag-ct{background:rgba(59,130,246,.2);color:#60a5fa;}
-.tag-st{background:rgba(245,158,11,.2);color:#fbbf24;}
-.tag-none{background:rgba(148,163,184,.2);color:#94a3b8;}
-.stats-widget{background:rgba(16,185,129,.12);padding:16px;border-radius:var(--radius-lg);font-weight:700;
-  margin:14px 0;border-left:5px solid var(--success);text-align:center;}
-.detail-box{background:rgba(30,41,59,.55);border:1px solid var(--border-dark);border-radius:var(--radius-lg);
-  padding:18px;margin:14px 0;}
-.row-box{display:flex;justify-content:space-between;align-items:center;gap:10px;background:rgba(30,41,59,.55);
-  border:1px solid var(--border-dark);border-radius:var(--radius-md);padding:12px 16px;margin-bottom:10px;}
-.row-box .rInfo{display:flex;flex-direction:column;gap:2px;}
-.row-box small{color:var(--text-muted);}
-.chip{display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,.15);color:#60a5fa;padding:6px 10px;
-  border-radius:20px;font-size:12.5px;font-weight:700;margin:4px 4px 0 0;}
-.chip .x{cursor:pointer;color:var(--danger);font-weight:900;}
-.dashRow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:16px;}
-.dashBox{background:rgba(30,41,59,.6);border:1px solid var(--border-dark);border-radius:var(--radius-lg);
-  padding:16px;text-align:center;}
-.dashBox b{font-size:24px;display:block;}
-.dashBox span{font-size:12px;color:var(--text-muted);}
-.breadcrumb{font-size:13px;color:var(--text-muted);margin-bottom:8px;}
-#hmToast{position:fixed;bottom:18px;right:18px;background:rgba(15,23,42,.95);padding:12px 20px;border-radius:30px;
-  z-index:1500;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,.15);display:none;}
+:root{--ink:#22233a;--paper:#fff3d1;--ketchup:#ff5a3c;--red:#c2331a;--gold:#ffb627;--mint:#2ec4a6;--sky:#8fd0ff;--pink:#ff9ec7;--white:#fff;color-scheme:light}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100svh;font-family:'Baloo 2',system-ui,sans-serif;color:var(--ink);background:var(--paper);background-image:radial-gradient(#e6d397 1.4px,transparent 1.6px);background-size:22px 22px;overflow-x:hidden}
+button{font-family:inherit;color:var(--ink)}
+.stk{position:fixed;font-size:2.4rem;opacity:.4;transform:rotate(var(--r));z-index:0;pointer-events:none}
+#fx{position:fixed;inset:0;width:100%;height:100%;z-index:60;pointer-events:none}
+.app{position:relative;z-index:2;max-width:480px;min-height:100svh;margin:0 auto;padding:max(14px,env(safe-area-inset-top)) 18px max(26px,env(safe-area-inset-bottom));display:flex;flex-direction:column}
+.screen{display:none;flex:1;flex-direction:column;justify-content:center;gap:16px;padding:20px 0 30px}
+.screen.on{display:flex;animation:in .45s ease both}
+@keyframes in{from{opacity:0;transform:translateY(18px)}}
+h1{margin:0;font-weight:800;font-size:clamp(2rem,9.5vw,2.8rem);line-height:1.1}
+h2{margin:0;font-weight:800;font-size:clamp(1.6rem,7vw,2.1rem);line-height:1.12}
+p{margin:0;font-size:1.1rem;line-height:1.55;max-width:44ch}
+.prog{font-weight:800;font-size:.95rem;background:var(--white);border:3px solid var(--ink);border-radius:99px;padding:3px 14px;align-self:flex-start;box-shadow:3px 3px 0 var(--ink)}
+.hand{font-family:'Caveat',cursive;font-weight:700}
+.btn{align-self:flex-start;border:3px solid var(--ink);cursor:pointer;font-weight:800;font-size:1.1rem;background:var(--gold);border-radius:99px;padding:11px 26px;box-shadow:4px 4px 0 var(--ink);transition:transform .1s,box-shadow .1s}
+.btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink)}
+.btn:focus-visible,.tile:focus-visible,.cl:focus-visible{outline:3px solid var(--ketchup);outline-offset:3px}
+.hidden{display:none!important}
+.say{min-height:2.4em;font-size:1.65rem;line-height:1.15;color:var(--red)}
+/* burger */
+.stage{display:flex;gap:14px;align-items:flex-end}
+.stack{flex:1;min-height:210px;display:flex;flex-direction:column-reverse;align-items:center;justify-content:flex-start;padding-bottom:4px;border-bottom:4px solid var(--ink)}
+.layer{border:2px solid var(--ink);animation:drop .35s cubic-bezier(.3,1.5,.5,1) both}
+@keyframes drop{from{transform:translateY(-90px);opacity:0}}
+.bun-b{width:150px;height:26px;background:#e5a043;border-radius:6px 6px 40px 40px}
+.patty{width:160px;height:26px;background:#6b3a22;border-radius:14px}
+.cheese{width:170px;height:12px;background:#ffd23f;border-radius:3px}
+.tomato{width:154px;height:14px;background:#ee4b3b;border-radius:10px}
+.lettuce{width:174px;height:16px;background:#6fcf6a;border-radius:20px}
+.bun-t{width:150px;height:58px;background:#f0b055;border-radius:90px 90px 10px 10px;background-image:radial-gradient(circle at 30% 35%,#fff3dc 2px,transparent 3px),radial-gradient(circle at 55% 25%,#fff3dc 2px,transparent 3px),radial-gradient(circle at 72% 42%,#fff3dc 2px,transparent 3px),radial-gradient(circle at 45% 52%,#fff3dc 2px,transparent 3px)}
+.tray{display:grid;grid-template-columns:1fr;gap:8px;width:46%}
+.tile{display:flex;align-items:center;gap:8px;border:2px solid var(--ink);background:#fff;border-radius:12px;padding:7px 9px;font-weight:800;font-size:.9rem;cursor:pointer;text-align:left;box-shadow:2px 2px 0 var(--ink)}
+.tile i{width:16px;height:16px;border-radius:5px;flex:none;background:var(--c);border:2px solid var(--ink)}
+.tile:disabled{opacity:.3;cursor:default}
+.tile.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.need{font-weight:800;color:var(--red);font-size:1.1rem}
+/* paratha */
+.tawa{align-self:center;width:250px;height:250px;border-radius:50%;background:#3a3b4d;border:4px solid var(--ink);box-shadow:inset 0 0 0 10px #52536a,5px 5px 0 var(--ink);display:grid;place-items:center;position:relative;margin-right:60px}
+.tawa::after{content:"";position:absolute;right:-70px;top:50%;width:70px;height:16px;border-radius:8px;background:#52536a;border:3px solid var(--ink);transform:translateY(-50%);z-index:-1}
+.roti{position:relative;width:72px;height:72px;border-radius:50%;background:#f1d9a0;border:2px solid var(--ink);transition:all .7s cubic-bezier(.3,1.4,.5,1);display:grid;place-items:center}
+.roti::before{content:"";position:absolute;width:38%;height:38%;border-radius:50%;background:#f4d25a;opacity:0;transition:.5s}
+.roti[data-s="1"]::before{opacity:1}
+.roti[data-s="2"]{width:180px;height:180px}
+.roti[data-s="2"]::before{opacity:.55;width:70%;height:70%;filter:blur(8px)}
+.roti[data-s="3"]{width:180px;height:180px;background:#e8b45c;background-image:radial-gradient(circle at 30% 30%,#b8742a 7px,transparent 8px),radial-gradient(circle at 65% 40%,#b8742a 9px,transparent 10px),radial-gradient(circle at 45% 70%,#b8742a 6px,transparent 7px),radial-gradient(circle at 74% 72%,#b8742a 8px,transparent 9px)}
+.roti[data-s="4"],.roti[data-s="5"]{width:180px;height:180px;background:#dd9a3f;background-image:radial-gradient(circle at 28% 34%,#8a4a14 9px,transparent 10px),radial-gradient(circle at 68% 30%,#8a4a14 8px,transparent 9px),radial-gradient(circle at 40% 66%,#8a4a14 10px,transparent 11px),radial-gradient(circle at 72% 68%,#8a4a14 7px,transparent 8px),radial-gradient(circle at 52% 50%,#8a4a14 6px,transparent 7px)}
+.butter{position:absolute;width:44px;height:30px;border-radius:7px;background:#ffe27a;border:2px solid var(--ink);opacity:0;transform:translateY(-40px) scale(.6);transition:.6s}
+.roti[data-s="5"] .butter{opacity:1;transform:none;animation:melt 2.4s ease-in .6s forwards}
+@keyframes melt{to{width:100px;height:70px;border-radius:50%;opacity:.6}}
+.steam{position:absolute;top:-34px;left:50%;display:flex;gap:14px;transform:translateX(-50%);opacity:0;transition:.5s}
+.tawa.hot .steam{opacity:1}
+.steam b{width:8px;height:30px;border-radius:8px;background:rgba(255,255,255,.7);animation:up 1.8s ease-in-out infinite}
+.steam b:nth-child(2){animation-delay:.5s}.steam b:nth-child(3){animation-delay:1s}
+@keyframes up{from{transform:translateY(14px);opacity:.9}to{transform:translateY(-22px);opacity:0}}
+/* cloud game: full screen */
+#s3{position:fixed;inset:0;z-index:20;padding:0;gap:0;background:linear-gradient(#8fd0ff,#e4f5ff);overflow:hidden;justify-content:center}
+.sky-stage{position:relative;z-index:1;margin:auto;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:16px}
+.clouds{position:absolute;inset:0;z-index:2;pointer-events:none}
+.cl{position:absolute;left:var(--l);top:var(--t);width:var(--s);height:calc(var(--s)*.5);border:0;padding:0;background:#fff;border-radius:999px;transform:scale(var(--k,1));transition:transform .22s,opacity .3s;cursor:pointer;pointer-events:auto;box-shadow:0 8px 0 rgba(34,35,58,.12)}
+.cl::before,.cl::after{content:"";position:absolute;background:#fff;border-radius:50%}
+.cl::before{width:44%;height:88%;left:14%;top:-42%}
+.cl::after{width:34%;height:68%;right:16%;top:-30%}
+.cl.gone{transform:scale(0);opacity:0;pointer-events:none}
+.cleft{position:absolute;top:max(14px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:4;pointer-events:none;background:#fff;border:3px solid var(--ink);border-radius:99px;padding:5px 16px;font-weight:800;box-shadow:3px 3px 0 var(--ink);white-space:nowrap}
+.fairy{width:170px;visibility:hidden;transform:translateX(130vw) rotate(12deg);transition:transform 1.4s cubic-bezier(.2,.9,.3,1)}
+.fairy.in{visibility:visible;transform:none}
+.fairy svg{width:100%;height:auto;overflow:visible;animation:float 2.2s ease-in-out infinite alternate}
+@keyframes float{to{transform:translateY(-10px)}}
+#wand{transform-origin:98px 112px;animation:wave 1.1s ease-in-out infinite alternate}
+@keyframes wave{from{transform:rotate(-10deg)}to{transform:rotate(12deg)}}
+.w1{font-family:'Caveat',cursive;font-weight:700;font-size:2.3rem;line-height:1;min-height:1em;opacity:0;transition:opacity .5s}
+.w1.on{opacity:1}
+.w2{font-weight:800;font-size:clamp(2.2rem,12vw,3.8rem);line-height:1.05;color:var(--ketchup);text-shadow:3px 3px 0 var(--ink);letter-spacing:.02em;min-height:1.1em}
+.w2 span{display:inline-block;opacity:0;transform:scale(.3) translateY(10px)}
+.w2 span.on{opacity:1;transform:none;transition:transform .35s cubic-bezier(.3,1.6,.5,1),opacity .2s}
+/* alien game */
+.btn.mint{background:var(--mint)}
+.btn.alt{background:var(--white)}
+#s4{position:fixed;inset:0;z-index:20;padding:18px;gap:0;overflow:auto;background:#161238;background-image:radial-gradient(2px 2px at 20px 30px,#fff,transparent),radial-gradient(1.5px 1.5px at 90px 120px,#ffe9a8,transparent),radial-gradient(2px 2px at 160px 60px,#fff,transparent);background-size:200px 200px}
+#s4.shake{animation:shk .5s}
+@keyframes shk{20%{transform:translate(-9px,5px)}40%{transform:translate(8px,-6px)}60%{transform:translate(-6px,-4px)}80%{transform:translate(5px,6px)}}
+.space-in{margin:auto;display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:420px}
+.namebox{background:#fff;border:3px solid var(--ink);border-radius:18px;padding:18px;box-shadow:5px 5px 0 var(--gold);display:flex;flex-direction:column;gap:12px;width:min(92vw,380px)}
+.namebox label{font-weight:800;font-size:1.3rem}
+.namebox input{border:3px solid var(--ink);border-radius:14px;padding:12px;font:700 1.2rem 'Baloo 2',sans-serif;width:100%;color:var(--ink)}
+.namebox input:focus-visible,.namebox .btn:focus-visible,#s4 .btn:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.astage{position:relative;width:210px;height:230px}
+.asteroid{position:absolute;left:25px;top:30px;width:160px;height:160px;opacity:0;transform:translate(-70vw,-90vh) rotate(-220deg) scale(.5);filter:drop-shadow(0 0 16px #ff8a3c);transition:transform 1.3s cubic-bezier(.6,0,.9,.5),opacity .2s}
+.asteroid svg{width:100%;height:100%;overflow:visible}
+.asteroid.fall{opacity:1;transform:none}
+.asteroid.crack{opacity:0;transform:scale(1.8);transition:transform .5s,opacity .5s}
+.alien{position:absolute;inset:0;opacity:0;transform:scale(.1)}
+.alien svg{width:100%;height:100%;overflow:visible}
+.alien.pop{opacity:1;transform:none;animation:popin .7s cubic-bezier(.3,1.7,.5,1) both}
+.alien.pop svg{animation:float 2s ease-in-out infinite alternate}
+@keyframes popin{from{transform:scale(.1);opacity:0}}
+.alien .m-sad,.alien .tear{display:none}
+.alien.sad .m-smile{display:none}
+.alien.sad .m-sad,.alien.sad .tear{display:inline}
+.alien.dance svg{animation:dance .55s ease-in-out infinite alternate}
+@keyframes dance{from{transform:translateY(0) rotate(-9deg)}to{transform:translateY(-16px) rotate(9deg)}}
+.alien.dance .arm.l{transform-origin:68px 150px;animation:armL .3s ease-in-out infinite alternate}
+.alien.dance .arm.r{transform-origin:132px 150px;animation:armR .3s ease-in-out infinite alternate}
+@keyframes armL{from{transform:rotate(-55deg)}to{transform:rotate(35deg)}}
+@keyframes armR{from{transform:rotate(55deg)}to{transform:rotate(-35deg)}}
+.talk{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%}
+.bubble{background:#fff;border:3px solid var(--ink);border-radius:20px;padding:14px 16px;text-align:center;box-shadow:5px 5px 0 var(--gold);position:relative;width:100%}
+.bubble::before{content:"";position:absolute;left:50%;top:-15px;margin-left:-12px;border:12px solid transparent;border-top:0;border-bottom-color:var(--ink)}
+.aq1{font-size:1.9rem;color:var(--red);line-height:1.1}
+.aq2{font-weight:800;font-size:1.2rem;margin-top:6px}
+.ybtns{display:flex;gap:16px;align-items:center;justify-content:center;min-height:90px}
+/* note paper */
+.paper{position:relative;background:#fffdf4;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 33px,#c5d9f2 33px,#c5d9f2 35px);border:2px solid #d9cfb0;border-radius:4px;padding:24px 16px 20px 52px;transform:rotate(-1.4deg);box-shadow:6px 8px 0 rgba(34,35,58,.25);font-family:'Caveat',cursive;font-weight:700;font-size:1.6rem;line-height:35px}
+.paper::before{content:"";position:absolute;left:36px;top:0;bottom:0;width:2px;background:#f2a1a1}
+.paper::after{content:"";position:absolute;left:50%;top:-14px;width:96px;height:28px;margin-left:-48px;background:rgba(255,158,199,.75);transform:rotate(-3deg)}
+.paper p{max-width:none;font-size:inherit;line-height:inherit;margin:0 0 35px}
+.paper p:last-child{margin-bottom:0}
+.ln{animation:wr .6s ease both;animation-delay:calc(var(--i)*.55s)}
+@keyframes wr{from{opacity:0;transform:translateX(-10px)}}
+.paper b{color:var(--red)}
+.sign{text-align:right}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
+<div class="stk" style="left:2%;bottom:5%;--r:-12deg" aria-hidden="true">🍔</div>
+<div class="stk" style="right:3%;bottom:12%;--r:10deg" aria-hidden="true">🫓</div>
+<div class="stk" style="right:2%;top:42%;--r:-8deg" aria-hidden="true">☕</div>
+<div class="stk" style="left:3%;top:48%;--r:14deg" aria-hidden="true">🍟</div>
+<canvas id="fx" aria-hidden="true"></canvas>
 
-<div class="topBarFixed">
-  <button class="pillBtn" onclick="toggleMode()">🌓</button>
-  <button class="pillBtn" id="logoutBtn" style="display:none;" onclick="hmLogout()">🚪 Logout</button>
-</div>
+<main class="app">
+  <!-- 0 intro -->
+  <section class="screen on" id="s0">
+    <h1 id="hi">Hey dost!</h1>
+    <p>Mujhse koi galti hui hai (pata nahi kaunsi). Isliye sorry bolne ke liye 4 chhote games banaye hain.</p>
+    <p>Bas ek minute lagega.</p>
+    <button class="btn" id="start">Chalo, khelte hain</button>
+  </section>
 
-<!-- LOGIN -->
-<div id="loginPage" class="page active">
-  <div class="auth-container center">
-    <div class="brandMark">🏫</div>
-    <h2>Headmaster Panel</h2>
-    <p style="color:var(--text-muted);font-size:13px;">Full school control — teachers, classes &amp; subjects</p>
-    <label class="small">School Code</label>
-    <input type="text" id="hmSchoolCode" placeholder="e.g. SVMS2026 (create new or enter existing)" style="text-transform:uppercase;">
-    <label class="small">Headmaster Password</label>
-    <input type="password" id="hmPass" placeholder="Password">
-    <button class="primary" style="width:100%;margin-top:10px;" onclick="hmAuth()">🔐 Enter Panel</button>
-    <p id="hmAuthStatus" style="font-size:12px;color:var(--text-muted);margin-top:10px;"></p>
-    <p style="font-size:11.5px;color:var(--text-muted);margin-top:14px;line-height:1.5;">🆕 New school? Just type a School Code you'll remember and a password — it will be created automatically. Share the same School Code with your teachers so their app connects here.</p>
-  </div>
-</div>
-
-<!-- HOME -->
-<div id="homePage" class="page">
-  <div class="schoolCodeBadge">🏫 School Code: <b id="hmSchoolCodeDisplay">—</b> <button class="pillBtn" style="padding:6px 10px;font-size:12px;" onclick="copySchoolCode()">📋 Copy</button></div>
-  <h2>👋 Welcome, <span id="hmWelcomeName">Headmaster</span></h2>
-  <p style="color:var(--text-muted);font-size:13px;margin-top:-8px;">Share your School Code above with teachers — they'll use it to sign up or log in on the Student Record App, and instantly appear here for you to assign.</p>
-  <div class="dashRow">
-    <div class="dashBox"><b id="statTeachers">0</b><span>Teachers</span></div>
-    <div class="dashBox"><b id="statClasses">0</b><span>Classes</span></div>
-    <div class="dashBox"><b id="statStudents">0</b><span>Students</span></div>
-    <div class="dashBox"><b id="statTodayPct">0%</b><span>Checked Today</span></div>
-  </div>
-  <div class="grid">
-    <div class="card" onclick="showPage('teachersPage');renderTeachers();">👨‍🏫<div>Manage Teachers</div></div>
-    <div class="card" onclick="showPage('classesPage');renderClasses();">🏫<div>Manage Classes</div></div>
-    <div class="card" onclick="exportTeacherListPDF()">📄<div>Export Teacher List</div></div>
-    <div class="card" onclick="exportTeacherListExcel()">📊<div>Export Excel</div></div>
-  </div>
-</div>
-
-<!-- TEACHERS LIST -->
-<div id="teachersPage" class="page">
-  <button class="backBtn" onclick="showPage('homePage')">⬅ Back</button>
-  <h2 style="margin-top:16px;">👨‍🏫 All Teacher IDs</h2>
-  <input type="text" id="teacherSearchBox" placeholder="🔍 Search teacher ID..." oninput="renderTeachers()">
-  <button class="success-btn" style="width:100%;margin-top:10px;" onclick="openCreateTeacherForm()">➕ Create New Teacher ID</button>
-  <p style="font-size:12px;color:var(--text-muted);margin:6px 2px;">💡 Teachers can also self-register from the Student Record App using your School Code — they'll appear below automatically, ready for you to assign.</p>
-  <div id="createTeacherBox" class="detail-box" style="display:none;">
-    <label class="small">Teacher ID (login username)</label>
-    <input type="text" id="newTeacherId" placeholder="e.g. rahul.sir">
-    <label class="small">Display Name</label>
-    <input type="text" id="newTeacherName" placeholder="e.g. Rahul Sharma">
-    <label class="small">Password</label>
-    <input type="text" id="newTeacherPass" placeholder="Set a login password">
-    <p style="font-size:11.5px;color:var(--text-muted);">This teacher will log in to the Student Record App with this ID + password + your School Code <b id="createTeacherCodeHint"></b>.</p>
-    <button class="success-btn" style="width:100%;margin-top:8px;" onclick="createTeacher()">✅ Create ID</button>
-  </div>
-  <div class="grid" id="teachersGrid"></div>
-</div>
-
-<!-- TEACHER DETAIL -->
-<div id="teacherDetailPage" class="page">
-  <button class="backBtn" onclick="showPage('teachersPage');renderTeachers();">⬅ Back</button>
-  <h2 style="margin-top:16px;">🧑‍🏫 <span id="tdName"></span></h2>
-  <div class="detail-box">
-    <b>🏷️ Class Teacher Of (full class access — all subjects)</b>
-    <div id="tdClassTeacherChips" style="margin-top:8px;"></div>
-    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-      <select id="tdAddClassTeacherSelect" style="flex:1;min-width:160px;"></select>
-      <button class="primary" onclick="assignClassTeacher()">➕ Assign as Class Teacher</button>
+  <!-- 1 burger -->
+  <section class="screen" id="s1">
+    <div class="prog">Game 1 / 4</div>
+    <h2>Pehle burger banao</h2>
+    <p class="need" id="need">Pehle chahiye: Neeche ka bun</p>
+    <div class="stage">
+      <div class="stack" id="stack" aria-label="Burger"></div>
+      <div class="tray" id="tray"></div>
     </div>
-  </div>
-  <div class="detail-box">
-    <b>📘 Subject Teacher Of (single-subject access)</b>
-    <div id="tdSubjectTeacherChips" style="margin-top:8px;"></div>
-    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-      <select id="tdSubjClassSelect" style="flex:1;min-width:130px;" onchange="populateSubjectDropdownForAssign()"></select>
-      <select id="tdSubjSubjectSelect" style="flex:1;min-width:130px;"></select>
-      <button class="primary" onclick="assignSubjectTeacher()">➕ Assign as Subject Teacher</button>
+    <div class="say hand hidden" id="bdone">Extra cheese wala. Ye tumhara.</div>
+    <button class="btn hidden" id="n1">Ab paratha</button>
+  </section>
+
+  <!-- 2 paratha -->
+  <section class="screen" id="s2">
+    <div class="prog">Game 2 / 4</div>
+    <h2>Ab garam aloo paratha</h2>
+    <p id="pinfo">Tawa garam hai. Pehle aloo bharte hain.</p>
+    <div class="tawa" id="tawa">
+      <div class="steam" aria-hidden="true"><b></b><b></b><b></b></div>
+      <div class="roti" id="roti" data-s="0"><div class="butter"></div></div>
     </div>
-  </div>
-  <div class="detail-box">
-    <button class="purple-btn" style="width:100%;" onclick="inspectTeacher()">🔍 Inspect This Teacher's Data</button>
-    <button class="warn-btn" style="width:100%;margin-top:8px;" onclick="resetTeacherPassword()">🔑 Reset Password</button>
-    <button class="danger-btn" style="width:100%;margin-top:8px;" onclick="deleteTeacher()">🗑️ Delete Teacher ID</button>
-  </div>
-</div>
+    <button class="btn" id="pbtn">Aloo bharo</button>
+    <button class="btn hidden" id="n2">Last game</button>
+  </section>
 
-<!-- CLASSES -->
-<div id="classesPage" class="page">
-  <button class="backBtn" onclick="showPage('homePage')">⬅ Back</button>
-  <h2 style="margin-top:16px;">🏫 Classes</h2>
-  <div style="display:flex;gap:8px;">
-    <input type="text" id="newClassName" placeholder="e.g. Class 10-A">
-    <button class="success-btn" onclick="addClass()">➕ Add</button>
-  </div>
-  <div id="classesGrid" class="grid"></div>
-</div>
+  <!-- 3 clouds + fairy -->
+  <section class="screen" id="s3">
+    <div class="cleft" id="cleft">Baadalon ko tap karo</div>
+    <div class="sky-stage">
+      <div class="fairy" id="fairy" aria-hidden="true">
+        <svg viewBox="0 0 180 225" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="42" cy="100" rx="34" ry="54" transform="rotate(-22 42 100)" fill="#bfe8ff" fill-opacity=".85" stroke="#22233a" stroke-width="3"/>
+          <ellipse cx="118" cy="100" rx="34" ry="54" transform="rotate(22 118 100)" fill="#bfe8ff" fill-opacity=".85" stroke="#22233a" stroke-width="3"/>
+          <line x1="68" y1="190" x2="66" y2="214" stroke="#22233a" stroke-width="5" stroke-linecap="round"/>
+          <line x1="92" y1="190" x2="94" y2="214" stroke="#22233a" stroke-width="5" stroke-linecap="round"/>
+          <path d="M60 108 Q80 98 100 108 L126 188 Q80 208 34 188 Z" fill="#2ec4a6" stroke="#22233a" stroke-width="3" stroke-linejoin="round"/>
+          <line x1="62" y1="114" x2="42" y2="144" stroke="#22233a" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="80" cy="72" r="30" fill="#ffd9b8" stroke="#22233a" stroke-width="3"/>
+          <path d="M48 74 Q44 34 80 34 Q116 34 112 74 Q104 52 80 52 Q56 52 48 74Z" fill="#ff9ec7" stroke="#22233a" stroke-width="3" stroke-linejoin="round"/>
+          <ellipse cx="50" cy="82" rx="8" ry="16" fill="#ff9ec7" stroke="#22233a" stroke-width="3"/>
+          <ellipse cx="110" cy="82" rx="8" ry="16" fill="#ff9ec7" stroke="#22233a" stroke-width="3"/>
+          <circle cx="70" cy="74" r="3.5" fill="#22233a"/><circle cx="90" cy="74" r="3.5" fill="#22233a"/>
+          <circle cx="63" cy="84" r="5" fill="#ff9ec7" fill-opacity=".7"/><circle cx="97" cy="84" r="5" fill="#ff9ec7" fill-opacity=".7"/>
+          <path d="M71 86 Q80 95 89 86" fill="none" stroke="#22233a" stroke-width="3" stroke-linecap="round"/>
+          <g id="wand">
+            <line x1="98" y1="114" x2="130" y2="82" stroke="#22233a" stroke-width="5" stroke-linecap="round"/>
+            <line x1="130" y1="82" x2="152" y2="42" stroke="#ffb627" stroke-width="5" stroke-linecap="round"/>
+            <polygon id="tip" points="154,18 159,31 172,32 162,41 166,54 154,47 142,54 146,41 136,32 149,31" fill="#ffe27a" stroke="#22233a" stroke-width="2.5" stroke-linejoin="round"/>
+          </g>
+        </svg>
+      </div>
+      <div class="w1" id="w1" aria-live="polite"></div>
+      <div class="w2" id="w2" aria-live="polite"></div>
+      <button class="btn hidden" id="toNote">Ek aur game</button>
+    </div>
+    <div class="clouds" id="clouds"></div>
+  </section>
 
-<!-- SUBJECTS -->
-<div id="subjectsPage" class="page">
-  <button class="backBtn" onclick="showPage('classesPage');renderClasses();">⬅ Back</button>
-  <div class="breadcrumb" id="subjBreadcrumb"></div>
-  <h2 style="margin-top:4px;">📚 Subjects</h2>
-  <div style="display:flex;gap:8px;">
-    <input type="text" id="newSubjectName" placeholder="e.g. Mathematics">
-    <button class="success-btn" onclick="addSubject()">➕ Add</button>
-  </div>
-  <div id="subjectsGrid" class="grid"></div>
-</div>
+  <!-- 4 alien -->
+  <section class="screen" id="s4">
+    <div class="space-in">
+      <form class="namebox" id="nameBox" autocomplete="off">
+        <label for="nm">Pehle apna naam likho</label>
+        <input id="nm" maxlength="20" placeholder="Write your name" autocomplete="off">
+        <button class="btn" type="submit">Aage</button>
+      </form>
+      <div class="astage hidden" id="astage">
+        <div class="asteroid" id="asteroid" aria-hidden="true">
+          <svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 0 L54 44 L30 68 Z" fill="#ffb627"/><path d="M10 30 L52 58 L34 72 Z" fill="#ff5a3c"/>
+            <path d="M30 74 Q18 36 56 24 Q94 8 124 30 Q152 52 140 92 Q130 132 90 140 Q40 148 30 74Z" fill="#8a6a52" stroke="#22233a" stroke-width="4" stroke-linejoin="round"/>
+            <circle cx="62" cy="60" r="12" fill="#6b4f3b" stroke="#22233a" stroke-width="2.5"/>
+            <circle cx="106" cy="86" r="16" fill="#6b4f3b" stroke="#22233a" stroke-width="2.5"/>
+            <circle cx="70" cy="106" r="9" fill="#6b4f3b" stroke="#22233a" stroke-width="2.5"/>
+            <circle cx="112" cy="50" r="7" fill="#6b4f3b" stroke="#22233a" stroke-width="2.5"/>
+          </svg>
+        </div>
+        <div class="alien" id="alien" aria-hidden="true">
+          <svg viewBox="0 0 200 225" xmlns="http://www.w3.org/2000/svg">
+            <line x1="78" y1="44" x2="64" y2="14" stroke="#22233a" stroke-width="4" stroke-linecap="round"/><circle cx="62" cy="11" r="8" fill="#ffb627" stroke="#22233a" stroke-width="3"/>
+            <line x1="122" y1="44" x2="136" y2="14" stroke="#22233a" stroke-width="4" stroke-linecap="round"/><circle cx="138" cy="11" r="8" fill="#ffb627" stroke="#22233a" stroke-width="3"/>
+            <line x1="88" y1="198" x2="82" y2="218" stroke="#22233a" stroke-width="5" stroke-linecap="round"/>
+            <line x1="112" y1="198" x2="118" y2="218" stroke="#22233a" stroke-width="5" stroke-linecap="round"/>
+            <ellipse cx="100" cy="165" rx="36" ry="40" fill="#7ae582" stroke="#22233a" stroke-width="3"/>
+            <g class="arm l"><line x1="68" y1="150" x2="40" y2="176" stroke="#22233a" stroke-width="6" stroke-linecap="round"/></g>
+            <g class="arm r"><line x1="132" y1="150" x2="160" y2="176" stroke="#22233a" stroke-width="6" stroke-linecap="round"/></g>
+            <ellipse cx="100" cy="88" rx="60" ry="50" fill="#7ae582" stroke="#22233a" stroke-width="3"/>
+            <circle cx="60" cy="62" r="5" fill="#5ec96b"/><circle cx="140" cy="66" r="4" fill="#5ec96b"/><circle cx="100" cy="50" r="4" fill="#5ec96b"/>
+            <ellipse cx="78" cy="88" rx="15" ry="19" fill="#22233a" transform="rotate(-12 78 88)"/>
+            <ellipse cx="122" cy="88" rx="15" ry="19" fill="#22233a" transform="rotate(12 122 88)"/>
+            <circle cx="73" cy="80" r="5" fill="#fff"/><circle cx="117" cy="80" r="5" fill="#fff"/>
+            <circle cx="58" cy="110" r="6" fill="#ff9ec7" fill-opacity=".75"/><circle cx="142" cy="110" r="6" fill="#ff9ec7" fill-opacity=".75"/>
+            <path class="m-smile" d="M86 110 Q100 124 114 110" fill="none" stroke="#22233a" stroke-width="3.5" stroke-linecap="round"/>
+            <path class="m-sad" d="M86 120 Q100 106 114 120" fill="none" stroke="#22233a" stroke-width="3.5" stroke-linecap="round"/>
+            <path class="tear" d="M66 108 Q61 120 66 127 Q72 120 66 108Z" fill="#8fd0ff" stroke="#22233a" stroke-width="2"/>
+            <path class="tear" d="M134 108 Q129 120 134 127 Q140 120 134 108Z" fill="#8fd0ff" stroke="#22233a" stroke-width="2"/>
+          </svg>
+        </div>
+      </div>
+      <div class="talk hidden" id="talk">
+        <div class="bubble"><div class="aq1 hand" id="aq1"></div><div class="aq2" id="aq2" aria-live="polite"></div></div>
+        <div class="ybtns" id="ybtns"><button class="btn mint" id="yes">Yes</button><button class="btn alt" id="no">No</button></div>
+        <button class="btn hidden" id="toNote2">Note padho</button>
+      </div>
+    </div>
+  </section>
 
-<!-- SUB-SUBJECTS -->
-<div id="subSubjectsPage" class="page">
-  <button class="backBtn" onclick="showPage('subjectsPage');renderSubjects();">⬅ Back</button>
-  <div class="breadcrumb" id="subSubjBreadcrumb"></div>
-  <h2 style="margin-top:4px;">📖 Chapters / Sub-Subjects</h2>
-  <div style="display:flex;gap:8px;">
-    <input type="text" id="newSubSubjectName" placeholder="e.g. Chapter 3 - Algebra">
-    <button class="success-btn" onclick="addSubSubject()">➕ Add</button>
-  </div>
-  <div id="subSubjectsGrid" class="grid"></div>
-</div>
-
-<!-- STUDENTS -->
-<div id="studentsPage" class="page">
-  <button class="backBtn" onclick="showPage('subSubjectsPage');renderSubSubjects();">⬅ Back</button>
-  <div class="breadcrumb" id="studBreadcrumb"></div>
-  <div class="stats-widget">📈 Checked Today: <span id="studStatsChecked">0</span> / <span id="studStatsTotal">0</span></div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;">
-    <input type="text" id="newStudentName" placeholder="Student Name">
-    <input type="text" id="newStudentPhone" placeholder="Parent WhatsApp Number (with country code)">
-    <button class="success-btn" style="width:100%;" onclick="addStudent()">➕ Add Student</button>
-  </div>
-  <div id="studentsList" style="margin-top:16px;"></div>
-</div>
-
-<div id="hmToast"></div>
+  <!-- 5 note -->
+  <section class="screen" id="s5">
+    <div class="paper" id="paper"></div>
+  </section>
+</main>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyAB77vRMD9FcIVsHXPU3c8lAsBR0HRLmcY",
-  authDomain: "student-record-app-45ed3.firebaseapp.com",
-  databaseURL: "https://student-record-app-45ed3-default-rtdb.firebaseio.com",
-  projectId: "student-record-app-45ed3",
-  storageBucket: "student-record-app-45ed3.appspot.com",
-  messagingSenderId: "581800549444",
-  appId: "1:581800549444:web:f86cec08754bbb1d58bec5",
-  measurementId: "G-9QJPS5TDWF"
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* names via link: add ?to=Naam&from=Naam */
+let to='',frm='';
+try{const q=new URLSearchParams(location.search);to=(q.get('to')||'').slice(0,30);frm=(q.get('from')||'').slice(0,30)}catch(e){}
+$('#hi').textContent='Hey '+(to||'dost')+'!';
+
+/* confetti / sparkles */
+const cv=$('#fx'),cx=cv.getContext('2d');let P=[];const COL=['#ffb627','#ff5a3c','#2ec4a6','#8fd0ff','#ff9ec7'];
+function fit(){cv.width=innerWidth;cv.height=innerHeight}fit();addEventListener('resize',fit);
+function burst(x,y,n=60){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=3+Math.random()*8;P.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-4,w:5+Math.random()*6,h:4+Math.random()*5,c:COL[i%5],r:Math.random()*6,vr:Math.random()*.4-.2,l:1})}}
+(function loop(){cx.clearRect(0,0,cv.width,cv.height);P=P.filter(p=>p.l>0);P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.18;p.vx*=.99;p.r+=p.vr;p.l-=.012;cx.save();cx.globalAlpha=Math.max(p.l,0);cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillStyle=p.c;cx.fillRect(-p.w/2,-p.h/2,p.w,p.h);cx.restore()});requestAnimationFrame(loop)})();
+const at=el=>{const r=el.getBoundingClientRect();return[r.left+r.width/2,r.top+r.height/2]};
+
+/* navigation */
+const screens=$$('.screen');
+function go(n){screens.forEach((s,i)=>s.classList.toggle('on',i===n));window.scrollTo({top:0});if(n===3)buildClouds();if(n===4)setTimeout(()=>{try{$('#nm').focus()}catch(e){}},300);if(n===5)showNote()}
+$('#start').onclick=()=>go(1);
+
+/* 1 burger */
+const ING=[['bun-b','Neeche ka bun','#e5a043'],['patty','Patty','#6b3a22'],['cheese','Cheese','#ffd23f'],['tomato','Tamatar','#ee4b3b'],['lettuce','Patta','#6fcf6a'],['bun-t','Upar ka bun','#f0b055']];
+let bs=0;
+const mix=[...ING].sort(()=>Math.random()-.5);
+$('#tray').innerHTML=mix.map(i=>`<button class="tile" data-k="${i[0]}"><i style="--c:${i[2]}"></i>${i[1]}</button>`).join('');
+$$('.tile').forEach(t=>t.onclick=()=>{
+  if(t.dataset.k===ING[bs][0]){const d=document.createElement('div');d.className='layer '+ING[bs][0];$('#stack').appendChild(d);t.disabled=true;bs++;
+    if(bs===6){$('#need').classList.add('hidden');$('#bdone').classList.remove('hidden');$('#n1').classList.remove('hidden');burst(...at($('#stack')),70)}
+    else $('#need').textContent='Ab chahiye: '+ING[bs][1];
+  }else{t.classList.remove('shake');void t.offsetWidth;t.classList.add('shake');$('#need').textContent='Abhi nahi. Pehle chahiye: '+ING[bs][1]}
+});
+$('#n1').onclick=()=>go(2);
+
+/* 2 paratha */
+const PL=['Aloo bharo','Belo','Sekho','Palto','Butter lagao'];
+const PI=['Tawa garam hai. Pehle aloo bharte hain.','Aloo andar. Ab belan se belte hain.','Bel gaya. Ab tawe pe sekte hain.','Ek taraf sunehri ho gaya. Ab palto.','Dono taraf pak gaya. Ab sabse zaroori kaam.'];
+let ps=0;
+$('#pbtn').onclick=()=>{ps++;$('#roti').dataset.s=ps;if(ps>=3)$('#tawa').classList.add('hot');
+  if(ps<5){$('#pbtn').textContent=PL[ps];$('#pinfo').textContent=PI[ps]}
+  else{$('#pbtn').classList.add('hidden');$('#pinfo').textContent='Garam aloo paratha, upar se butter.';$('#n2').classList.remove('hidden');burst(...at($('#tawa')),70)}
 };
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const FieldValue = firebase.firestore.FieldValue;
+$('#n2').onclick=()=>go(3);
 
-// ---------------------------------------------------------------
-// SHARED SCHOOL DOCUMENT — this is the single source of truth that
-// BOTH the Headmaster Panel and the Student Record App read/write.
-// Collection: "schools", Doc ID = the School Code itself.
-// Shape: { headmasterPassword, teachers:{...}, classes:{...} }
-// The Student Record App connects to the exact same doc using the
-// School Code the headmaster shares with each teacher.
-// ---------------------------------------------------------------
-let SCHOOL_DOC = null;
-let schoolCode = "";
-let hmData = { headmasterPassword: "", teachers: {}, classes: {} };
-let hmUnsub = null;
-let currentClass = "", currentSubject = "", currentSubSubject = "";
-let currentTeacherId = "";
-// Inspect scope: null = headmaster full access. Otherwise:
-// { mode:'class', classes:[...] } or { mode:'subject', pairs:[{cls,subj}] }
-let inspectScope = null;
-
-function toast(msg){ const t=document.getElementById("hmToast"); t.innerText=msg; t.style.display="block"; clearTimeout(window._hmT); window._hmT=setTimeout(()=>t.style.display="none",2200); }
-function showPage(id){ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active")); document.getElementById(id).classList.add("active"); window.scrollTo(0,0); }
-function toggleMode(){ document.body.classList.toggle("light-mode"); }
-function getTodayString(){ const d=new Date(); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
-function copySchoolCode(){
-  if(!schoolCode) return;
-  navigator.clipboard?.writeText(schoolCode).then(()=>toast("📋 School Code copied")).catch(()=>toast(schoolCode));
+/* 3 clouds */
+let clouds=[],left=0,built=false,fairyStarted=false;
+function buildClouds(){
+  if(built)return;built=true;
+  const W=innerWidth,H=innerHeight,S=210,gx=150,gy=120;
+  const cols=Math.ceil(W/gx)+1,rows=Math.ceil(H/gy)+1;
+  let html='';
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const cx0=Math.min(W-12,Math.max(12,c*gx+(Math.random()*30-15))),cy0=Math.min(H-12,Math.max(12,r*gy+(Math.random()*24-12))),s=Math.round(S*(.85+Math.random()*.3));
+    clouds.push({cx:cx0,cy:cy0,hp:2});
+    html+=`<button class="cl" data-i="${clouds.length-1}" aria-label="Baadal hatao" style="--l:${Math.round(cx0-s/2)}px;--t:${Math.round(cy0-s*.25)}px;--s:${s}px"></button>`;
+  }
+  $('#clouds').innerHTML=html;
+  $$('#clouds .cl').forEach((el,i)=>clouds[i].el=el);
+  left=clouds.length;
+  $('#cleft').textContent='Baadal baaki: '+left;
 }
-
-// ---------- AUTH ----------
-function hmAuth(){
-  let code = document.getElementById("hmSchoolCode").value.trim().toUpperCase();
-  let pass = document.getElementById("hmPass").value.trim();
-  if(!code || !pass){ toast("Enter School Code and password"); return; }
-  document.getElementById("hmAuthStatus").innerText = "🔄 Checking...";
-  db.collection("schools").doc(code).get().then(doc=>{
-    if(doc.exists){
-      if(doc.data().headmasterPassword === pass){
-        sessionStorage.setItem("hmSchoolCode", code);
-        loginSuccess(code);
-      } else {
-        document.getElementById("hmAuthStatus").innerText = "❌ Wrong password for this School Code";
-      }
-    } else {
-      if(confirm(`No school exists yet with code "${code}". Create it now with this password?`)){
-        db.collection("schools").doc(code).set({headmasterPassword: pass, teachers:{}, classes:{}}).then(()=>{
-          sessionStorage.setItem("hmSchoolCode", code);
-          loginSuccess(code);
-        });
-      }
+$('#s3').addEventListener('click',e=>{
+  if(!built||left===0)return;
+  let x=e.clientX,y=e.clientY;
+  const t=e.target.closest?e.target.closest('.cl'):null;
+  if(!x&&!y){if(t){const c=clouds[+t.dataset.i];x=c.cx;y=c.cy}else return}
+  let hit=0;
+  clouds.forEach((c,i)=>{
+    if(c.hp<=0)return;
+    if(Math.hypot(c.cx-x,c.cy-y)<95||(t&&+t.dataset.i===i)){
+      hit++;c.hp--;
+      if(c.hp<=0){c.el.classList.add('gone');left--}else c.el.style.setProperty('--k','.55');
     }
   });
+  if(hit)burst(x,y,8);
+  $('#cleft').textContent='Baadal baaki: '+left;
+  if(left===0)startFairy();
+});
+function startFairy(){
+  if(fairyStarted)return;fairyStarted=true;
+  $('#cleft').classList.add('hidden');
+  setTimeout(()=>$('#fairy').classList.add('in'),300);
+  setTimeout(writeWords,1900);
 }
-function loginSuccess(code){
-  schoolCode = code;
-  SCHOOL_DOC = db.collection("schools").doc(code);
-  document.getElementById("hmWelcomeName").innerText = code;
-  document.getElementById("hmSchoolCodeDisplay").innerText = code;
-  document.getElementById("createTeacherCodeHint").innerText = `(${code})`;
-  document.getElementById("logoutBtn").style.display = "inline-flex";
-  attachListener();
-  showPage("homePage");
+function writeWords(){
+  $('#w1').textContent='bahut bahut';$('#w1').classList.add('on');
+  $('#w2').innerHTML=[...'SOOORRYYY!'].map(ch=>`<span>${ch}</span>`).join('');
+  const sp=$$('#w2 span');let i=0;
+  (function nx(){
+    if(i>=sp.length){burst(...at($('#tip')),80);setTimeout(()=>$('#toNote').classList.remove('hidden'),700);return}
+    sp[i].classList.add('on');burst(...at($('#tip')),6);i++;setTimeout(nx,130);
+  })();
 }
-function hmLogout(){ sessionStorage.removeItem("hmSchoolCode"); if(hmUnsub) hmUnsub(); location.reload(); }
+$('#toNote').onclick=()=>go(4);
 
-function attachListener(){
-  if(hmUnsub) hmUnsub();
-  hmUnsub = SCHOOL_DOC.onSnapshot(doc=>{
-    if(doc.exists){
-      hmData = doc.data();
-      hmData.teachers = hmData.teachers || {};
-      hmData.classes = hmData.classes || {};
-    } else {
-      SCHOOL_DOC.set({teachers:{}, classes:{}}, {merge:true});
-    }
-    refreshCurrentView();
-  });
+/* 4 alien */
+let pname='',nn=0;
+const NO=['Wapas socho 🥺','Alien itni door se sorry bolne aaya hai...','Ek baar aur socho. Please!','Alien ro dega, sach mein 😭','Is galaxy mein "No" ka button kharaab hai. "Yes" dabao!','Yes wala button kitna accha lag raha hai, na?','Alien ne tumhare liye burger bhi banaya tha 🍔','Chalo, last baar socho. Phir bhi yahi karna hai?'];
+$('#nameBox').addEventListener('submit',e=>{
+  e.preventDefault();const v=$('#nm').value.trim().slice(0,20);
+  if(!v){$('#nm').placeholder='Naam likhna zaroori hai';$('#nm').focus();return}
+  pname=v;$('#nameBox').classList.add('hidden');$('#astage').classList.remove('hidden');
+  const ast=$('#asteroid');void ast.offsetWidth;
+  setTimeout(()=>ast.classList.add('fall'),80);
+  setTimeout(impact,1600);
+});
+function impact(){
+  $('#s4').classList.add('shake');setTimeout(()=>$('#s4').classList.remove('shake'),520);
+  const c=at($('#astage'));burst(c[0],c[1],110);
+  $('#asteroid').classList.add('crack');$('#alien').classList.add('pop');
+  setTimeout(showTalk,1000);
 }
-// Targeted field-path write — only touches the exact key given, so it
-// never clobbers other teachers' concurrent edits elsewhere in the doc.
-async function setField(path, value){
-  try{ await SCHOOL_DOC.update({[path]: value}); }
-  catch(e){ await SCHOOL_DOC.set({}, {merge:true}); await SCHOOL_DOC.update({[path]: value}); }
-}
-async function deleteField(path){
-  await SCHOOL_DOC.update({[path]: FieldValue.delete()});
-}
-
-function refreshCurrentView(){
-  updateDashboardStats();
-  if(document.getElementById("teachersPage").classList.contains("active")) renderTeachers();
-  if(document.getElementById("teacherDetailPage").classList.contains("active")) renderTeacherDetail();
-  if(document.getElementById("classesPage").classList.contains("active")) renderClasses();
-  if(document.getElementById("subjectsPage").classList.contains("active")) renderSubjects();
-  if(document.getElementById("subSubjectsPage").classList.contains("active")) renderSubSubjects();
-  if(document.getElementById("studentsPage").classList.contains("active")) renderStudents();
-}
-
-// ---------- DASHBOARD ----------
-function updateDashboardStats(){
-  let tCount = Object.keys(hmData.teachers).length;
-  let cCount = Object.keys(hmData.classes).length;
-  let sCount = 0, checkedToday = 0, today = getTodayString();
-  Object.values(hmData.classes).forEach(subjObj=>{
-    Object.values(subjObj).forEach(subSubjObj=>{
-      Object.values(subSubjObj).forEach(chapter=>{
-        (chapter.students||[]).forEach(st=>{
-          sCount++;
-          if(st.dates && st.dates.includes(today)) checkedToday++;
-        });
-      });
-    });
-  });
-  document.getElementById("statTeachers").innerText = tCount;
-  document.getElementById("statClasses").innerText = cCount;
-  document.getElementById("statStudents").innerText = sCount;
-  document.getElementById("statTodayPct").innerText = sCount ? Math.round((checkedToday/sCount)*100)+"%" : "0%";
-}
-
-// ---------- TEACHERS ----------
-function openCreateTeacherForm(){
-  let box = document.getElementById("createTeacherBox");
-  box.style.display = box.style.display === "block" ? "none" : "block";
-}
-function createTeacher(){
-  let id = document.getElementById("newTeacherId").value.trim().toLowerCase();
-  let name = document.getElementById("newTeacherName").value.trim();
-  let pass = document.getElementById("newTeacherPass").value.trim();
-  if(!id || !name || !pass){ toast("Fill all fields"); return; }
-  if(hmData.teachers[id]){ toast("This Teacher ID already exists"); return; }
-  setField(`teachers.${id}`, { name, password: pass, classTeacherOf: [], subjectTeacherOf: [] }).then(()=>{
-    toast("✅ Teacher ID created");
-    document.getElementById("newTeacherId").value="";
-    document.getElementById("newTeacherName").value="";
-    document.getElementById("newTeacherPass").value="";
-    document.getElementById("createTeacherBox").style.display="none";
-  });
-}
-function renderTeachers(){
-  let grid = document.getElementById("teachersGrid");
-  let q = (document.getElementById("teacherSearchBox").value||"").toLowerCase();
-  grid.innerHTML = "";
-  Object.keys(hmData.teachers).sort().forEach(id=>{
-    let t = hmData.teachers[id];
-    if(q && !id.includes(q) && !(t.name||"").toLowerCase().includes(q)) return;
-    let ctCount = (t.classTeacherOf||[]).length;
-    let stCount = (t.subjectTeacherOf||[]).length;
-    let tagHtml = "";
-    if(ctCount) tagHtml += `<span class="roleTag tag-ct">Class Teacher ×${ctCount}</span> `;
-    if(stCount) tagHtml += `<span class="roleTag tag-st">Subject Teacher ×${stCount}</span>`;
-    if(!ctCount && !stCount) tagHtml = `<span class="roleTag tag-none">No Role Yet</span>`;
-    let div = document.createElement("div");
-    div.className = "card";
-    div.onclick = ()=>openTeacherDetail(id);
-    div.innerHTML = `<div style="font-size:28px;">🧑‍🏫</div><div><b>${t.name}</b><br><small style="opacity:.7;">@${id}</small></div><div>${tagHtml}</div>`;
-    grid.appendChild(div);
-  });
-  if(!grid.innerHTML) grid.innerHTML = `<p style="color:var(--text-muted);">No teachers found.</p>`;
-}
-
-function openTeacherDetail(id){
-  currentTeacherId = id;
-  showPage("teacherDetailPage");
-  renderTeacherDetail();
-}
-function renderTeacherDetail(){
-  let t = hmData.teachers[currentTeacherId];
-  if(!t){ showPage("teachersPage"); renderTeachers(); return; }
-  document.getElementById("tdName").innerText = `${t.name} (@${currentTeacherId})`;
-
-  let ctChips = document.getElementById("tdClassTeacherChips");
-  ctChips.innerHTML = "";
-  (t.classTeacherOf||[]).forEach(cls=>{
-    let c = document.createElement("span"); c.className="chip";
-    c.innerHTML = `🏫 ${cls} <span class="x" onclick="removeClassTeacher('${cls.replace(/'/g,"\\'")}')">✕</span>`;
-    ctChips.appendChild(c);
-  });
-  if(!(t.classTeacherOf||[]).length) ctChips.innerHTML = `<small style="color:var(--text-muted);">Not a class teacher of any class.</small>`;
-
-  let stChips = document.getElementById("tdSubjectTeacherChips");
-  stChips.innerHTML = "";
-  (t.subjectTeacherOf||[]).forEach((p,idx)=>{
-    let c = document.createElement("span"); c.className="chip";
-    c.innerHTML = `📘 ${p.cls} → ${p.subj} <span class="x" onclick="removeSubjectTeacher(${idx})">✕</span>`;
-    stChips.appendChild(c);
-  });
-  if(!(t.subjectTeacherOf||[]).length) stChips.innerHTML = `<small style="color:var(--text-muted);">Not a subject teacher anywhere.</small>`;
-
-  let classSel = document.getElementById("tdAddClassTeacherSelect");
-  classSel.innerHTML = "";
-  Object.keys(hmData.classes).sort().forEach(cls=>{
-    let opt = document.createElement("option"); opt.value = cls; opt.innerText = cls; classSel.appendChild(opt);
-  });
-
-  let subjClassSel = document.getElementById("tdSubjClassSelect");
-  subjClassSel.innerHTML = "";
-  Object.keys(hmData.classes).sort().forEach(cls=>{
-    let opt = document.createElement("option"); opt.value = cls; opt.innerText = cls; subjClassSel.appendChild(opt);
-  });
-  populateSubjectDropdownForAssign();
-}
-function populateSubjectDropdownForAssign(){
-  let cls = document.getElementById("tdSubjClassSelect").value;
-  let subjSel = document.getElementById("tdSubjSubjectSelect");
-  subjSel.innerHTML = "";
-  Object.keys(hmData.classes[cls] || {}).sort().forEach(subj=>{
-    let opt = document.createElement("option"); opt.value = subj; opt.innerText = subj; subjSel.appendChild(opt);
-  });
-}
-function assignClassTeacher(){
-  let cls = document.getElementById("tdAddClassTeacherSelect").value;
-  if(!cls){ toast("Add a class first"); return; }
-  let t = hmData.teachers[currentTeacherId];
-  let list = (t.classTeacherOf || []).slice();
-  if(list.includes(cls)){ toast("Already assigned"); return; }
-  list.push(cls);
-  setField(`teachers.${currentTeacherId}.classTeacherOf`, list).then(()=>toast(`✅ Now Class Teacher of ${cls}`));
-}
-function removeClassTeacher(cls){
-  let t = hmData.teachers[currentTeacherId];
-  let list = (t.classTeacherOf||[]).filter(c=>c!==cls);
-  setField(`teachers.${currentTeacherId}.classTeacherOf`, list);
-}
-function assignSubjectTeacher(){
-  let cls = document.getElementById("tdSubjClassSelect").value;
-  let subj = document.getElementById("tdSubjSubjectSelect").value;
-  if(!cls || !subj){ toast("Add a class & subject first"); return; }
-  let t = hmData.teachers[currentTeacherId];
-  let list = (t.subjectTeacherOf || []).slice();
-  if(list.some(p=>p.cls===cls && p.subj===subj)){ toast("Already assigned"); return; }
-  list.push({cls, subj});
-  setField(`teachers.${currentTeacherId}.subjectTeacherOf`, list).then(()=>toast(`✅ Now Subject Teacher of ${subj} (${cls})`));
-}
-function removeSubjectTeacher(idx){
-  let t = hmData.teachers[currentTeacherId];
-  let list = (t.subjectTeacherOf||[]).slice();
-  list.splice(idx,1);
-  setField(`teachers.${currentTeacherId}.subjectTeacherOf`, list);
-}
-function resetTeacherPassword(){
-  let np = prompt("Enter new password for this teacher:");
-  if(!np) return;
-  setField(`teachers.${currentTeacherId}.password`, np).then(()=>toast("🔑 Password updated"));
-}
-function deleteTeacher(){
-  if(!confirm("Delete this teacher ID permanently? Class/subject data is not deleted.")) return;
-  deleteField(`teachers.${currentTeacherId}`).then(()=>{ toast("🗑️ Teacher deleted"); showPage("teachersPage"); renderTeachers(); });
-}
-
-// Inspect: open the class browser scoped to exactly what this teacher can see
-function inspectTeacher(){
-  let t = hmData.teachers[currentTeacherId];
-  let hasClass = (t.classTeacherOf||[]).length > 0;
-  let hasSubj = (t.subjectTeacherOf||[]).length > 0;
-  if(!hasClass && !hasSubj){ toast("This teacher has no assigned class/subject yet"); return; }
-  inspectScope = { classTeacherOf: t.classTeacherOf||[], subjectTeacherOf: t.subjectTeacherOf||[] };
-  showPage("classesPage");
-  renderClasses();
-  toast(`🔍 Viewing as ${t.name}`);
-}
-function clearInspect(){ inspectScope = null; }
-
-// ---------- CLASSES ----------
-function addClass(){
-  let name = document.getElementById("newClassName").value.trim();
-  if(!name){ toast("Enter a class name"); return; }
-  if(hmData.classes[name]){ toast("Class already exists"); return; }
-  setField(`classes.${name}`, {}).then(()=>{ document.getElementById("newClassName").value=""; toast("✅ Class added"); });
-}
-function deleteClass(cls, ev){
-  ev.stopPropagation();
-  if(!confirm(`Delete class "${cls}" and all its subjects/data?`)) return;
-  deleteField(`classes.${cls}`);
-}
-function renderClasses(){
-  let grid = document.getElementById("classesGrid");
-  grid.innerHTML = "";
-  let allowedClasses = null;
-  if(inspectScope){
-    allowedClasses = new Set([...inspectScope.classTeacherOf, ...inspectScope.subjectTeacherOf.map(p=>p.cls)]);
-  }
-  Object.keys(hmData.classes).sort().forEach(cls=>{
-    if(allowedClasses && !allowedClasses.has(cls)) return;
-    let div = document.createElement("div");
-    div.className = "card";
-    div.onclick = ()=>{ currentClass = cls; showPage("subjectsPage"); renderSubjects(); };
-    let delBtn = inspectScope ? "" : `<button class="danger-btn" style="padding:6px 10px;font-size:11px;" onclick="deleteClass('${cls.replace(/'/g,"\\'")}',event)">🗑️</button>`;
-    div.innerHTML = `<div style="font-size:28px;">🏫</div><b>${cls}</b>${delBtn}`;
-    grid.appendChild(div);
-  });
-  if(inspectScope){
-    let backBtn = document.createElement("div");
-    // add a small exit-inspect notice
-    let notice = document.createElement("p");
-    notice.style.cssText = "color:var(--text-muted);font-size:12px;text-align:center;width:100%;";
-    notice.innerHTML = `🔍 Inspect mode — <a href="#" onclick="clearInspect();renderClasses();return false;" style="color:var(--primary);">exit inspect</a>`;
-    grid.parentElement.insertBefore(notice, grid);
-  }
-}
-
-// ---------- SUBJECTS ----------
-function addSubject(){
-  let name = document.getElementById("newSubjectName").value.trim();
-  if(!name){ toast("Enter a subject name"); return; }
-  if((hmData.classes[currentClass]||{})[name]){ toast("Subject already exists"); return; }
-  setField(`classes.${currentClass}.${name}`, {}).then(()=>{ document.getElementById("newSubjectName").value=""; toast("✅ Subject added"); });
-}
-function deleteSubject(subj, ev){
-  ev.stopPropagation();
-  if(!confirm(`Delete subject "${subj}"?`)) return;
-  deleteField(`classes.${currentClass}.${subj}`);
-}
-function renderSubjects(){
-  document.getElementById("subjBreadcrumb").innerText = `🏫 ${currentClass}`;
-  let grid = document.getElementById("subjectsGrid");
-  grid.innerHTML = "";
-  let allowedSubjects = null;
-  if(inspectScope && !inspectScope.classTeacherOf.includes(currentClass)){
-    allowedSubjects = new Set(inspectScope.subjectTeacherOf.filter(p=>p.cls===currentClass).map(p=>p.subj));
-  }
-  Object.keys((hmData.classes[currentClass]||{})).sort().forEach(subj=>{
-    if(allowedSubjects && !allowedSubjects.has(subj)) return;
-    let div = document.createElement("div");
-    div.className = "card";
-    div.onclick = ()=>{ currentSubject = subj; showPage("subSubjectsPage"); renderSubSubjects(); };
-    let delBtn = inspectScope ? "" : `<button class="danger-btn" style="padding:6px 10px;font-size:11px;" onclick="deleteSubject('${subj.replace(/'/g,"\\'")}',event)">🗑️</button>`;
-    div.innerHTML = `<div style="font-size:26px;">📚</div><b>${subj}</b>${delBtn}`;
-    grid.appendChild(div);
-  });
-  if(!grid.innerHTML) grid.innerHTML = `<p style="color:var(--text-muted);">No subjects yet.</p>`;
-}
-
-// ---------- SUB-SUBJECTS ----------
-function addSubSubject(){
-  let name = document.getElementById("newSubSubjectName").value.trim();
-  if(!name){ toast("Enter a name"); return; }
-  let subjObj = hmData.classes[currentClass][currentSubject] || {};
-  if(subjObj[name]){ toast("Already exists"); return; }
-  setField(`classes.${currentClass}.${currentSubject}.${name}`, { students: [] }).then(()=>{ document.getElementById("newSubSubjectName").value=""; toast("✅ Added"); });
-}
-function deleteSubSubject(name, ev){
-  ev.stopPropagation();
-  if(!confirm(`Delete "${name}"?`)) return;
-  deleteField(`classes.${currentClass}.${currentSubject}.${name}`);
-}
-function renderSubSubjects(){
-  document.getElementById("subSubjBreadcrumb").innerText = `🏫 ${currentClass} → 📚 ${currentSubject}`;
-  let grid = document.getElementById("subSubjectsGrid");
-  grid.innerHTML = "";
-  let today = getTodayString();
-  let subjObj = (hmData.classes[currentClass]||{})[currentSubject] || {};
-  Object.keys(subjObj).sort().forEach(name=>{
-    let chapter = subjObj[name];
-    let students = chapter.students || [];
-    let checkedToday = students.filter(s=>s.dates && s.dates.includes(today)).length;
-    let totalChecks = students.reduce((sum,s)=>sum + (s.dates?s.dates.length:0), 0);
-    let lastDate = "—";
-    students.forEach(s=>{ if(s.dates && s.dates.length){ let d=s.dates[s.dates.length-1]; if(lastDate==="—") lastDate=d; } });
-    let div = document.createElement("div");
-    div.className = "card";
-    div.onclick = ()=>{ currentSubSubject = name; showPage("studentsPage"); renderStudents(); };
-    let delBtn = inspectScope ? "" : `<button class="danger-btn" style="padding:6px 10px;font-size:11px;" onclick="deleteSubSubject('${name.replace(/'/g,"\\'")}',event)">🗑️</button>`;
-    div.innerHTML = `<div style="font-size:24px;">📖</div><b style="font-size:13px;">${name}</b>
-      <small style="color:var(--text-muted);">Today: ${checkedToday}/${students.length}</small>
-      <small style="color:var(--text-muted);">Total checks: ${totalChecks} · Last: ${lastDate}</small>
-      ${delBtn}`;
-    grid.appendChild(div);
-  });
-  if(!grid.innerHTML) grid.innerHTML = `<p style="color:var(--text-muted);">No chapters yet.</p>`;
-}
-
-// ---------- STUDENTS ----------
-function addStudent(){
-  let name = document.getElementById("newStudentName").value.trim();
-  let phone = document.getElementById("newStudentPhone").value.trim();
-  if(!name){ toast("Enter student name"); return; }
-  let chapter = hmData.classes[currentClass][currentSubject][currentSubSubject];
-  let students = (chapter.students || []).slice();
-  students.push({ name, phone, dates: [] });
-  setField(`classes.${currentClass}.${currentSubject}.${currentSubSubject}.students`, students).then(()=>{
-    document.getElementById("newStudentName").value="";
-    document.getElementById("newStudentPhone").value="";
-    toast("✅ Student added");
-  });
-}
-function toggleStudentToday(idx){
-  let chapter = hmData.classes[currentClass][currentSubject][currentSubSubject];
-  let students = (chapter.students || []).map(s=>({...s, dates:(s.dates||[]).slice()}));
-  let st = students[idx];
-  let today = getTodayString();
-  let pos = st.dates.indexOf(today);
-  if(pos === -1) st.dates.push(today); else st.dates.splice(pos,1);
-  setField(`classes.${currentClass}.${currentSubject}.${currentSubSubject}.students`, students);
-}
-function deleteStudent(idx){
-  if(!confirm("Remove this student?")) return;
-  let students = (hmData.classes[currentClass][currentSubject][currentSubSubject].students || []).slice();
-  students.splice(idx,1);
-  setField(`classes.${currentClass}.${currentSubject}.${currentSubSubject}.students`, students);
-}
-function renderStudents(){
-  document.getElementById("studBreadcrumb").innerText = `🏫 ${currentClass} → 📚 ${currentSubject} → 📖 ${currentSubSubject}`;
-  let chapter = (hmData.classes[currentClass]||{})[currentSubject]?.[currentSubSubject];
-  let students = (chapter && chapter.students) || [];
-  let today = getTodayString();
-  let checkedToday = students.filter(s=>s.dates && s.dates.includes(today)).length;
-  document.getElementById("studStatsChecked").innerText = checkedToday;
-  document.getElementById("studStatsTotal").innerText = students.length;
-
-  let list = document.getElementById("studentsList");
-  list.innerHTML = "";
-  students.forEach((s, idx)=>{
-    let dates = s.dates || [];
-    let lastDate = dates.length ? dates[dates.length-1] : "Never checked";
-    let isCheckedToday = dates.includes(today);
-    let row = document.createElement("div");
-    row.className = "row-box";
-    row.innerHTML = `
-      <div class="rInfo">
-        <b>${s.name}</b>
-        <small>📱 ${s.phone||"No number"}</small>
-        <small>✅ Checked ${dates.length}× · Last: ${lastDate}</small>
-      </div>
-      <div style="display:flex;gap:6px;">
-        <button class="${isCheckedToday?'success-btn':'warn-btn'}" style="padding:8px 12px;font-size:12px;" onclick="toggleStudentToday(${idx})">${isCheckedToday?'✔️ Today':'Mark Today'}</button>
-        <button class="danger-btn" style="padding:8px 10px;font-size:12px;" onclick="deleteStudent(${idx})">🗑️</button>
-      </div>`;
-    list.appendChild(row);
-  });
-  if(!list.innerHTML) list.innerHTML = `<p style="color:var(--text-muted);">No students yet.</p>`;
-}
-
-// ---------- EXPORTS ----------
-function exportTeacherListPDF(){
-  const { jsPDF } = window.jspdf;
-  let doc = new jsPDF();
-  doc.text("Teacher List", 14, 15);
-  let rows = Object.keys(hmData.teachers).map(id=>{
-    let t = hmData.teachers[id];
-    return [id, t.name, (t.classTeacherOf||[]).join(", ")||"-", (t.subjectTeacherOf||[]).map(p=>`${p.subj}@${p.cls}`).join(", ")||"-"];
-  });
-  doc.autoTable({ head:[["ID","Name","Class Teacher Of","Subject Teacher Of"]], body: rows, startY:22 });
-  doc.save("teacher_list.pdf");
-}
-function exportTeacherListExcel(){
-  let rows = Object.keys(hmData.teachers).map(id=>{
-    let t = hmData.teachers[id];
-    return { ID:id, Name:t.name, ClassTeacherOf:(t.classTeacherOf||[]).join(", "), SubjectTeacherOf:(t.subjectTeacherOf||[]).map(p=>`${p.subj}@${p.cls}`).join(", ") };
-  });
-  let ws = XLSX.utils.json_to_sheet(rows);
-  let wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Teachers");
-  XLSX.writeFile(wb, "teacher_list.xlsx");
-}
-
-// ---------- AUTO LOGIN ----------
-window.onload = function(){
-  let saved = sessionStorage.getItem("hmSchoolCode");
-  if(saved){
-    loginSuccess(saved);
-  }
+function showTalk(){$('#talk').classList.remove('hidden');$('#aq1').textContent='Verrry sorrrryyyyyy, '+pname+'!';$('#aq2').textContent='Can you forgive me?'}
+$('#no').onclick=()=>{
+  nn++;$('#alien').classList.add('sad');
+  $('#aq1').textContent='Verrry sorrrryyyyyy...';$('#aq2').textContent=NO[(nn-1)%NO.length];
+  $('#yes').style.fontSize=Math.min(1.1+nn*.12,2)+'rem';$('#no').style.fontSize=Math.max(1.1-nn*.04,.8)+'rem';
 };
+$('#yes').onclick=()=>{
+  $('#alien').classList.remove('sad');$('#alien').classList.add('dance');$('#ybtns').classList.add('hidden');
+  $('#aq1').textContent='Yaaayyy!! 🎉';$('#aq2').textContent='Thank you, '+pname+'! Alien ab dance karega.';
+  let k=0;const iv=setInterval(()=>{burst(innerWidth*(.2+Math.random()*.6),innerHeight*(.2+Math.random()*.4),50);if(++k>8)clearInterval(iv)},650);
+  burst(innerWidth/2,innerHeight/3,120);
+  setTimeout(()=>$('#toNote2').classList.remove('hidden'),3000);
+};
+$('#toNote2').onclick=()=>go(5);
+
+/* 5 note */
+let noted=false;
+function showNote(){
+  if(noted)return;noted=true;
+  const N=esc(pname||to||'Dost'),F='<br>'+esc(frm||'A.P');
+  const L=[
+    '<b>Subject: Sorry (bahut wala)</b>',
+    N+',',
+    'Mujhe nahi pata maine kya kiya, par tum gusse mein ho to galti meri hi hogi. Maine khud ko court mein khada kiya, aur jaj ne bola: "Sorry bolo, warna burger band."',
+    'Isliye: <b>BAHUT BAHUT SORRY!</b> 🙏',
+    'Burger bhi bana diya, paratha bhi, baadal bhi saaf kar diye, aur ek alien ko doosre grah se bulaya. Itni mehnat ke baad maaf kar do, warna agla game aa jayega, aur wo isse bhi mushkil hoga.',
+    'Ab bas tumhari ek smile baaki hai. 😄',
+    '<span class="sign" style="display:block">Tumhara Shri Ram jaisa dost,'+F+'</span>'
+  ];
+  $('#paper').innerHTML=L.map((h,i)=>`<p class="ln" style="--i:${i}">${h}</p>`).join('');
+  setTimeout(()=>burst(innerWidth/2,innerHeight/3,140),300);
+}
 </script>
-</body>1
+</body>
 </html>
+
+</body></html>
